@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Heart, Book, Calendar, CheckCircle, Sparkles } from 'lucide-react';
+import { Heart, Book, Calendar, CheckCircle, Sparkles, User, Moon } from 'lucide-react';
 
 interface NavigationProps {
   activeTab: string;
@@ -13,7 +13,9 @@ const Navigation = ({ activeTab, setActiveTab }: NavigationProps) => {
     { id: 'journal', label: 'Journal', icon: Book },
     { id: 'mood', label: 'Mood', icon: Calendar },
     { id: 'habits', label: 'Habits', icon: CheckCircle },
+    { id: 'period', label: 'Period', icon: Moon },
     { id: 'wellness', label: 'Wellness', icon: Sparkles },
+    { id: 'profile', label: 'Profile', icon: User },
   ];
 
   return (
