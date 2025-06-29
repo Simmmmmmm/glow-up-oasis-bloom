@@ -10,38 +10,46 @@ const Dashboard = () => {
     day: 'numeric'
   });
 
-  const dailyTip = "Remember to drink plenty of water today! Staying hydrated helps your skin glow and keeps your energy levels up. 💧";
+  const dailyTips = [
+    "Remember to drink plenty of water today! Staying hydrated helps your skin glow and keeps your energy levels up. 💧",
+    "Take 5 deep breaths right now. Mindful breathing can instantly reduce stress and improve focus. 🧘‍♀️",
+    "Stand up and stretch! Your body will thank you for the movement break. 🤸‍♀️",
+    "Practice gratitude by writing down 3 things you're thankful for today. ✨",
+    "Get some sunlight! Even 10 minutes outside can boost your mood and vitamin D levels. ☀️"
+  ];
+
+  const dailyTip = dailyTips[Math.floor(Math.random() * dailyTips.length)];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Daily Tip Card */}
-      <div className="lg:col-span-3 bg-gradient-to-r from-pink-100 to-purple-100 rounded-2xl p-6 shadow-sm border border-pink-200">
+      <div className="lg:col-span-3 bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-2xl p-6 shadow-sm border border-pink-200 dark:border-pink-800/30">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-purple-800">Daily Wellness Tip</h3>
-            <p className="text-sm text-purple-600">{todaysDate}</p>
+            <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-300">Daily Wellness Tip</h3>
+            <p className="text-sm text-purple-600 dark:text-purple-400">{todaysDate}</p>
           </div>
         </div>
-        <p className="text-purple-700 leading-relaxed">{dailyTip}</p>
+        <p className="text-purple-700 dark:text-purple-300 leading-relaxed">{dailyTip}</p>
       </div>
 
       {/* Quick Journal */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-pink-100 hover:shadow-md transition-shadow">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-gray-700 hover:shadow-md transition-shadow">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-r from-pink-300 to-pink-400 rounded-full flex items-center justify-center">
             <Book className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800">Quick Journal</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Quick Journal</h3>
         </div>
-        <p className="text-gray-600 mb-4">How are you feeling today?</p>
+        <p className="text-gray-600 dark:text-gray-300 mb-4">How are you feeling today?</p>
         <div className="flex space-x-2 mb-4">
           {['😊', '😌', '😐', '😔', '😴'].map((emoji, index) => (
             <button
               key={index}
-              className="text-2xl p-2 rounded-full hover:bg-pink-50 transition-colors"
+              className="text-2xl p-2 rounded-full hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors"
             >
               {emoji}
             </button>
@@ -53,16 +61,16 @@ const Dashboard = () => {
       </div>
 
       {/* Mood Calendar */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-purple-100 hover:shadow-md transition-shadow">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-purple-100 dark:border-gray-700 hover:shadow-md transition-shadow">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-r from-purple-300 to-purple-400 rounded-full flex items-center justify-center">
             <Calendar className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800">Mood Tracker</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Mood Tracker</h3>
         </div>
         <div className="grid grid-cols-7 gap-1 mb-4">
           {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
-            <div key={index} className="text-center text-xs font-medium text-gray-500 py-1">
+            <div key={index} className="text-center text-xs font-medium text-gray-500 dark:text-gray-400 py-1">
               {day}
             </div>
           ))}
@@ -70,23 +78,25 @@ const Dashboard = () => {
             <div
               key={i}
               className={`aspect-square rounded-full text-xs flex items-center justify-center ${
-                i === 15 ? 'bg-purple-200 text-purple-700' : 'bg-gray-100 text-gray-400'
+                i === 15 
+                  ? 'bg-purple-200 dark:bg-purple-700 text-purple-700 dark:text-purple-200' 
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
               }`}
             >
               {i + 1}
             </div>
           ))}
         </div>
-        <p className="text-sm text-gray-600">Today: Feeling grateful 💜</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">Today: Feeling grateful 💜</p>
       </div>
 
       {/* Today's Habits */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-mint-100 hover:shadow-md transition-shadow">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-mint-100 dark:border-gray-700 hover:shadow-md transition-shadow">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-r from-mint-300 to-mint-400 rounded-full flex items-center justify-center">
             <CheckCircle className="w-5 h-5 text-white" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800">Today's Habits</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Today's Habits</h3>
         </div>
         <div className="space-y-3">
           {[
@@ -97,12 +107,14 @@ const Dashboard = () => {
           ].map((item, index) => (
             <div key={index} className="flex items-center space-x-3">
               <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                item.completed ? 'bg-mint-400 text-white' : 'bg-gray-200'
+                item.completed ? 'bg-mint-400 text-white' : 'bg-gray-200 dark:bg-gray-600'
               }`}>
                 {item.completed && <CheckCircle className="w-3 h-3" />}
               </div>
               <span className={`text-sm ${
-                item.completed ? 'text-gray-800 line-through' : 'text-gray-600'
+                item.completed 
+                  ? 'text-gray-800 dark:text-gray-200 line-through' 
+                  : 'text-gray-600 dark:text-gray-300'
               }`}>
                 {item.habit}
               </span>
