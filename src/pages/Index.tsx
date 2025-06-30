@@ -33,7 +33,7 @@ const Index = () => {
       
       // Check if user has completed onboarding
       const userData = userDataService.getUserData(userEmail);
-      if (!userData) {
+      if (!userData || !userData.profile || userData.profile.goals.length === 0) {
         setShowOnboarding(true);
       }
     }
@@ -48,6 +48,11 @@ const Index = () => {
       // Create new user if doesn't exist
       userData = userDataService.createNewUser(email, localStorage.getItem('userName') || 'User');
       setShowOnboarding(true);
+    } else {
+      // Check if existing user needs onboarding
+      if (!userData.profile || userData.profile.goals.length === 0) {
+        setShowOnboarding(true);
+      }
     }
     
     setIsAuthenticated(true);
@@ -67,6 +72,11 @@ const Index = () => {
     if (!userData) {
       userData = userDataService.createNewUser(demoEmail, demoName);
       setShowOnboarding(true);
+    } else {
+      // Check if existing user needs onboarding
+      if (!userData.profile || userData.profile.goals.length === 0) {
+        setShowOnboarding(true);
+      }
     }
     
     setIsAuthenticated(true);
@@ -95,6 +105,8 @@ const Index = () => {
     healthConditions: string[];
     dateOfBirth?: string;
   }) => {
+    console.log('Onboarding completed with data:', onboardingData);
+    
     const userData = userDataService.getUserData(currentUser);
     if (userData) {
       userData.profile = {
@@ -102,13 +114,18 @@ const Index = () => {
         ...onboardingData,
       };
       userDataService.saveUserData(currentUser, userData);
+      console.log('User data saved after onboarding:', userData);
     }
+    
+    // Set onboarding as complete
     setShowOnboarding(false);
+    console.log('Onboarding state set to false, should redirect to dashboard');
   };
 
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentUser('');
+    setShowOnboarding(false);
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('userEmail');
     localStorage.removeItem('userName');
@@ -117,6 +134,7 @@ const Index = () => {
 
   // Show onboarding for new users
   if (isAuthenticated && showOnboarding) {
+    console.log('Showing onboarding screen');
     return (
       <ThemeProvider>
         <Onboarding onComplete={handleOnboardingComplete} />
@@ -148,6 +166,9 @@ const Index = () => {
       );
     }
   }
+
+  // Main app interface
+  console.log('Rendering main dashboard');
 
   const renderContent = () => {
     switch (activeTab) {
