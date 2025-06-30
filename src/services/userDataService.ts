@@ -1,5 +1,4 @@
 
-
 interface UserData {
   email: string;
   name: string;
@@ -101,7 +100,7 @@ export const userDataService = {
       },
     };
     
-    this.saveUserData(email, newUserData);
+    userDataService.saveUserData(email, newUserData);
     return newUserData;
   },
 
