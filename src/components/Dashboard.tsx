@@ -3,12 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Book, CheckCircle, Sparkles } from 'lucide-react';
 import { userDataService } from '../services/userDataService';
 
-const Dashboard = () => {
+interface DashboardProps {
+  onNavigate?: (tab: string) => void;
+}
+
+const Dashboard = ({ onNavigate }: DashboardProps) => {
   const [userHabits, setUserHabits] = useState<any[]>([]);
   const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    const email = localStorage.getItem('userEmail');
+    const email = localStorage.getItem('glowup_userEmail');
     if (email) {
       setUserEmail(email);
       const userData = userDataService.getUserData(email);
@@ -40,11 +44,9 @@ const Dashboard = () => {
     const isCompleted = habit.completedDates.includes(today);
 
     if (isCompleted) {
-      // Remove today from completed dates
       habit.completedDates = habit.completedDates.filter(date => date !== today);
       habit.streak = Math.max(0, habit.streak - 1);
     } else {
-      // Add today to completed dates
       habit.completedDates.push(today);
       habit.streak += 1;
     }
@@ -67,21 +69,24 @@ const Dashboard = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {/* Daily Tip Card */}
-      <div className="lg:col-span-3 bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 rounded-2xl p-6 shadow-sm border border-pink-200 dark:border-pink-800/30">
+      <div className="lg:col-span-3 bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/20 dark:to-purple-900/20 rounded-2xl p-6 shadow-sm border border-pink-200 dark:border-pink-800/30">
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full flex items-center justify-center">
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-300">Daily Wellness Tip</h3>
-            <p className="text-sm text-purple-600 dark:text-purple-400">{todaysDate}</p>
+            <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-200">Daily Wellness Tip</h3>
+            <p className="text-sm text-purple-600 dark:text-purple-300">{todaysDate}</p>
           </div>
         </div>
-        <p className="text-purple-700 dark:text-purple-300 leading-relaxed">{dailyTip}</p>
+        <p className="text-purple-700 dark:text-purple-200 leading-relaxed">{dailyTip}</p>
       </div>
 
       {/* Quick Journal */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+      <div 
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer"
+        onClick={() => onNavigate?.('journal')}
+      >
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-r from-pink-300 to-pink-400 rounded-full flex items-center justify-center">
             <Book className="w-5 h-5 text-white" />
@@ -105,7 +110,10 @@ const Dashboard = () => {
       </div>
 
       {/* Mood Calendar */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-purple-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+      <div 
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-purple-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer"
+        onClick={() => onNavigate?.('mood')}
+      >
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-r from-purple-300 to-purple-400 rounded-full flex items-center justify-center">
             <Calendar className="w-5 h-5 text-white" />
@@ -131,11 +139,14 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-300">Start tracking your mood! 💜</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">Click to start tracking your mood! 💜</p>
       </div>
 
       {/* Today's Habits */}
-      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-mint-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+      <div 
+        className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-6 shadow-sm border border-mint-100 dark:border-gray-700 hover:shadow-md transition-all cursor-pointer"
+        onClick={() => onNavigate?.('habits')}
+      >
         <div className="flex items-center space-x-3 mb-4">
           <div className="w-10 h-10 bg-gradient-to-r from-mint-300 to-mint-400 rounded-full flex items-center justify-center">
             <CheckCircle className="w-5 h-5 text-white" />
@@ -143,12 +154,15 @@ const Dashboard = () => {
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Today's Habits</h3>
         </div>
         <div className="space-y-3">
-          {userHabits.map((habit) => {
+          {userHabits.slice(0, 3).map((habit) => {
             const isCompleted = habit.completedDates.includes(today);
             return (
               <div key={habit.id} className="flex items-center space-x-3">
                 <button
-                  onClick={() => toggleHabitCompletion(habit.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleHabitCompletion(habit.id);
+                  }}
                   className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
                     isCompleted ? 'bg-mint-400 text-white' : 'bg-gray-200 dark:bg-gray-600 hover:bg-mint-200 dark:hover:bg-mint-600'
                   }`}
@@ -172,7 +186,12 @@ const Dashboard = () => {
           })}
           {userHabits.length === 0 && (
             <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-              No habits yet. Start building healthy routines!
+              No habits yet. Click to start building healthy routines!
+            </p>
+          )}
+          {userHabits.length > 3 && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+              +{userHabits.length - 3} more habits
             </p>
           )}
         </div>

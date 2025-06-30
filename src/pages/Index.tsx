@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { userDataService } from '../services/userDataService';
@@ -17,7 +18,7 @@ import Onboarding from '@/components/Onboarding';
 const Index = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [showLogin, setShowLogin] = useState(true);
+  const [showLogin, setShowLogin] = useState(false); // Start with register screen
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [currentUser, setCurrentUser] = useState<string>('');
 
@@ -42,16 +43,16 @@ const Index = () => {
     console.log('Logging in with:', email);
     
     // Check if user exists
-    let userData = userDataService.getUserData(email);
+    const userData = userDataService.getUserData(email);
     if (!userData) {
-      // Create new user if doesn't exist
-      userData = userDataService.createNewUser(email, localStorage.getItem('glowup_userName') || 'User');
+      alert('User not found. Please sign up first.');
+      setShowLogin(false); // Switch to register
+      return;
+    }
+    
+    // Check if existing user needs onboarding
+    if (!userData.profile || userData.profile.goals.length === 0) {
       setShowOnboarding(true);
-    } else {
-      // Check if existing user needs onboarding
-      if (!userData.profile || userData.profile.goals.length === 0) {
-        setShowOnboarding(true);
-      }
     }
     
     setIsAuthenticated(true);
@@ -82,7 +83,15 @@ const Index = () => {
   const handleRegister = (email: string, password: string, name: string) => {
     console.log('Registering new user:', email, name);
     
-    // Create new user
+    // Check if user already exists
+    const existingUser = userDataService.getUserData(email);
+    if (existingUser) {
+      alert('User already exists. Please login instead.');
+      setShowLogin(true); // Switch to login
+      return;
+    }
+    
+    // Create new user with completely fresh data
     userDataService.createNewUser(email, name);
     setShowOnboarding(true);
     setIsAuthenticated(true);
@@ -110,7 +119,6 @@ const Index = () => {
       console.log('User data saved after onboarding:', userData);
     }
     
-    // Set onboarding as complete
     setShowOnboarding(false);
     console.log('Onboarding complete, redirecting to dashboard');
   };
@@ -170,7 +178,7 @@ const Index = () => {
         return (
           <div>
             <Hero />
-            <Dashboard />
+            <Dashboard onNavigate={setActiveTab} />
           </div>
         );
       case 'journal':
@@ -186,13 +194,13 @@ const Index = () => {
       case 'profile':
         return <Profile />;
       default:
-        return <Dashboard />;
+        return <Dashboard onNavigate={setActiveTab} />;
     }
   };
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-mint-50 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-mint-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
         <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="container mx-auto px-4 py-6">
           {renderContent()}
@@ -201,7 +209,7 @@ const Index = () => {
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="fixed bottom-4 right-4 bg-gray-600 dark:bg-gray-700 text-white px-4 py-2 rounded-full text-sm hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors opacity-50 hover:opacity-100"
+          className="fixed bottom-4 right-4 bg-gray-600 dark:bg-gray-800 text-white px-4 py-2 rounded-full text-sm hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors opacity-50 hover:opacity-100"
         >
           Logout
         </button>

@@ -71,7 +71,11 @@ export const userDataService = {
   },
 
   createNewUser: (email: string, name: string): UserData => {
-    console.log('Creating new user:', email, name);
+    console.log('Creating completely fresh user:', email, name);
+    
+    // Generate unique IDs for this user
+    const timestamp = Date.now();
+    const uniqueId = Math.random().toString(36).substr(2, 9);
     
     const newUserData: UserData = {
       email,
@@ -89,7 +93,7 @@ export const userDataService = {
       journalEntries: [],
       habits: [
         {
-          id: `habit_${Date.now()}_1`,
+          id: `habit_${timestamp}_${uniqueId}_1`,
           name: 'Drink 8 glasses of water',
           category: 'Health',
           frequency: 'daily',
@@ -97,7 +101,7 @@ export const userDataService = {
           streak: 0,
         },
         {
-          id: `habit_${Date.now()}_2`,
+          id: `habit_${timestamp}_${uniqueId}_2`,
           name: 'Morning skincare routine',
           category: 'Self-care',
           frequency: 'daily',
@@ -105,7 +109,7 @@ export const userDataService = {
           streak: 0,
         },
         {
-          id: `habit_${Date.now()}_3`,
+          id: `habit_${timestamp}_${uniqueId}_3`,
           name: 'Take a 10-minute walk',
           category: 'Fitness',
           frequency: 'daily',
@@ -113,7 +117,7 @@ export const userDataService = {
           streak: 0,
         },
         {
-          id: `habit_${Date.now()}_4`,
+          id: `habit_${timestamp}_${uniqueId}_4`,
           name: 'Practice gratitude',
           category: 'Mental Health',
           frequency: 'daily',
@@ -129,7 +133,7 @@ export const userDataService = {
     };
     
     userDataService.saveUserData(email, newUserData);
-    console.log('New user created and saved:', newUserData);
+    console.log('Fresh user created and saved:', newUserData);
     return newUserData;
   },
 
