@@ -52,7 +52,7 @@ const Hero = () => {
     <div className="relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-gradient-to-r from-pink-50/50 via-purple-50/50 to-mint-50/50 dark:from-gray-800/50 dark:via-purple-900/20 dark:to-gray-700/50" />
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23f3e8ff" fill-opacity="0.1"%3E%3Ccircle cx="7" cy="7" r="2"/%3E%3Ccircle cx="27" cy="7" r="2"/%3E%3Ccircle cx="47" cy="7" r="2"/%3E%3Ccircle cx="7" cy="27" r="2"/%3E%3Ccircle cx="27" cy="27" r="2"/%3E%3Ccircle cx="47" cy="27" r="2"/%3E%3Ccircle cx="7" cy="47" r="2"/%3E%3Ccircle cx="27" cy="47" r="2"/%3E%3Ccircle cx="47" cy="47" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] dark:opacity-20" />
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%23f3e8ff\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"7\" cy=\"7\" r=\"2\"/%3E%3Ccircle cx=\"27\" cy=\"7\" r=\"2\"/%3E%3Ccircle cx=\"47\" cy=\"7\" r=\"2\"/%3E%3Ccircle cx=\"7\" cy=\"27\" r=\"2\"/%3E%3Ccircle cx=\"27\" cy=\"27\" r=\"2\"/%3E%3Ccircle cx=\"47\" cy=\"27\" r=\"2\"/%3E%3Ccircle cx=\"7\" cy=\"47\" r=\"2\"/%3E%3Ccircle cx=\"27\" cy=\"47\" r=\"2\"/%3E%3Ccircle cx=\"47\" cy=\"47\" r=\"2\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] dark:opacity-20" />
       
       <div className="relative text-center py-12 mb-8">
         {/* Time and Greeting */}
