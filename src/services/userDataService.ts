@@ -1,4 +1,5 @@
 
+
 interface UserData {
   email: string;
   name: string;
@@ -105,6 +106,8 @@ export const userDataService = {
   },
 
   resetUserData: (email: string) => {
-    localStorage.removeItem(`userData_${email}`);
+    if (email) {
+      localStorage.removeItem(`userData_${email}`);
+    }
   },
 };
