@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, Heart, AlertCircle, Info } from 'lucide-react';
+import { userDataService } from '../services/userDataService';
 
 interface PeriodData {
   lastPeriodDate: string;
@@ -18,18 +18,53 @@ const PeriodTracker = () => {
   });
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [userEmail, setUserEmail] = useState('');
 
   useEffect(() => {
-    // Load period data from localStorage
-    const savedData = localStorage.getItem('periodData');
-    if (savedData) {
-      setPeriodData(JSON.parse(savedData));
+    const email = localStorage.getItem('glowup_userEmail');
+    if (email) {
+      setUserEmail(email);
+      const userData = userDataService.getUserData(email);
+      if (userData && userData.periodData) {
+        // Extract period data from user data structure
+        const cycles = userData.periodData.cycles;
+        if (cycles && cycles.length > 0) {
+          const lastCycle = cycles[cycles.length - 1];
+          setPeriodData({
+            lastPeriodDate: lastCycle.startDate,
+            cycleLength: 28,
+            periodLength: 5,
+            notes: lastCycle.symptoms.join(', ')
+          });
+        }
+      }
     }
   }, []);
 
   const savePeriodData = (data: PeriodData) => {
     setPeriodData(data);
-    localStorage.setItem('periodData', JSON.stringify(data));
+    
+    if (!userEmail) return;
+    
+    const userData = userDataService.getUserData(userEmail);
+    if (!userData) return;
+
+    // Update period data in user data structure
+    if (data.lastPeriodDate) {
+      const newCycle = {
+        startDate: data.lastPeriodDate,
+        endDate: undefined,
+        symptoms: data.notes ? data.notes.split(', ') : [],
+        flow: 'normal'
+      };
+      
+      userData.periodData.cycles = userData.periodData.cycles.filter(
+        (cycle: any) => cycle.startDate !== data.lastPeriodDate
+      );
+      userData.periodData.cycles.push(newCycle);
+      
+      userDataService.saveUserData(userEmail, userData);
+    }
   };
 
   const calculateNextPeriod = () => {

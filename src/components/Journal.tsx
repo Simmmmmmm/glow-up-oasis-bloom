@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Calendar, Search, Save, Tag } from 'lucide-react';
+import { userDataService } from '../services/userDataService';
 
 interface JournalEntry {
   id: string;
@@ -19,6 +20,7 @@ const Journal = () => {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showPrompts, setShowPrompts] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   
   const moods = [
     { emoji: '😊', label: 'Happy', color: 'bg-yellow-100 text-yellow-700' },
@@ -48,15 +50,18 @@ const Journal = () => {
   ];
 
   useEffect(() => {
-    // Load entries from localStorage
-    const savedEntries = localStorage.getItem('journalEntries');
-    if (savedEntries) {
-      setEntries(JSON.parse(savedEntries));
+    const email = localStorage.getItem('glowup_userEmail');
+    if (email) {
+      setUserEmail(email);
+      const userData = userDataService.getUserData(email);
+      if (userData && userData.journalEntries) {
+        setEntries(userData.journalEntries);
+      }
     }
   }, []);
 
   const saveEntry = () => {
-    if (!entry.trim() || !selectedMood) return;
+    if (!entry.trim() || !selectedMood || !userEmail) return;
 
     const newEntry: JournalEntry = {
       id: Date.now().toString(),
@@ -67,9 +72,13 @@ const Journal = () => {
       tags: selectedTags
     };
 
-    const updatedEntries = [newEntry, ...entries];
-    setEntries(updatedEntries);
-    localStorage.setItem('journalEntries', JSON.stringify(updatedEntries));
+    const userData = userDataService.getUserData(userEmail);
+    if (!userData) return;
+
+    userData.journalEntries = [newEntry, ...userData.journalEntries];
+    userDataService.saveUserData(userEmail, userData);
+    
+    setEntries([newEntry, ...entries]);
 
     // Reset form
     setEntry('');

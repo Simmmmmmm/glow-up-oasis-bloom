@@ -1,9 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
+import { userDataService } from '../services/userDataService';
 
 const MoodTracker = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [userEmail, setUserEmail] = useState('');
+  const [moodData, setMoodData] = useState<any>({});
   
   const moods = [
     { emoji: '😊', label: 'Happy', color: 'bg-yellow-200' },
@@ -14,15 +16,62 @@ const MoodTracker = () => {
     { emoji: '😴', label: 'Tired', color: 'bg-purple-200' },
   ];
 
-  // Mock mood data for calendar
-  const moodData = {
-    '2024-01-15': { emoji: '😊', color: 'bg-yellow-200' },
-    '2024-01-14': { emoji: '😌', color: 'bg-green-200' },
-    '2024-01-13': { emoji: '😰', color: 'bg-red-200' },
-    '2024-01-12': { emoji: '😊', color: 'bg-yellow-200' },
-    '2024-01-11': { emoji: '😐', color: 'bg-gray-200' },
-    '2024-01-10': { emoji: '😌', color: 'bg-green-200' },
-    '2024-01-09': { emoji: '😔', color: 'bg-blue-200' },
+  useEffect(() => {
+    const email = localStorage.getItem('glowup_userEmail');
+    if (email) {
+      setUserEmail(email);
+      const userData = userDataService.getUserData(email);
+      if (userData && userData.moodData) {
+        // Convert mood data array to calendar format
+        const moodCalendar: any = {};
+        userData.moodData.forEach((mood: any) => {
+          moodCalendar[mood.date] = {
+            emoji: mood.mood === 'Happy' ? '😊' : 
+                   mood.mood === 'Peaceful' ? '😌' :
+                   mood.mood === 'Sad' ? '😔' :
+                   mood.mood === 'Anxious' ? '😰' :
+                   mood.mood === 'Tired' ? '😴' : '😐',
+            color: mood.mood === 'Happy' ? 'bg-yellow-200' : 
+                   mood.mood === 'Peaceful' ? 'bg-green-200' :
+                   mood.mood === 'Sad' ? 'bg-blue-200' :
+                   mood.mood === 'Anxious' ? 'bg-red-200' :
+                   mood.mood === 'Tired' ? 'bg-purple-200' : 'bg-gray-200'
+          };
+        });
+        setMoodData(moodCalendar);
+      }
+    }
+  }, []);
+
+  const saveMood = (moodLabel: string) => {
+    if (!userEmail) return;
+    
+    const userData = userDataService.getUserData(userEmail);
+    if (!userData) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const newMoodEntry = {
+      date: today,
+      mood: moodLabel,
+      note: '',
+      energy: Math.floor(Math.random() * 5) + 1,
+      sleep: Math.floor(Math.random() * 5) + 1
+    };
+
+    // Remove existing mood for today
+    userData.moodData = userData.moodData.filter((mood: any) => mood.date !== today);
+    // Add new mood
+    userData.moodData.push(newMoodEntry);
+
+    userDataService.saveUserData(userEmail, userData);
+    
+    // Update local state
+    const newMoodData = { ...moodData };
+    const mood = moods.find(m => m.label === moodLabel);
+    if (mood) {
+      newMoodData[today] = { emoji: mood.emoji, color: mood.color };
+      setMoodData(newMoodData);
+    }
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -35,12 +84,10 @@ const MoodTracker = () => {
 
     const days = [];
     
-    // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
     
-    // Add all days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       days.push(day);
     }
@@ -76,7 +123,9 @@ const MoodTracker = () => {
             <h3 className="text-xl font-semibold text-gray-800">Mood Calendar</h3>
             <div className="flex items-center space-x-2 text-gray-600">
               <Calendar className="w-5 h-5" />
-              <span className="font-medium">January 2024</span>
+              <span className="font-medium">
+                {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+              </span>
             </div>
           </div>
 
@@ -132,6 +181,7 @@ const MoodTracker = () => {
               {moods.map((mood, index) => (
                 <button
                   key={index}
+                  onClick={() => saveMood(mood.label)}
                   className="p-3 rounded-xl border border-gray-200 hover:border-purple-300 hover:shadow-sm transition-all duration-200 text-center"
                 >
                   <div className="text-2xl mb-1">{mood.emoji}</div>

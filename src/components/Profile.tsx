@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, Settings, Bell, Moon, Sun, Heart, Target } from 'lucide-react';
+import { userDataService } from '../services/userDataService';
 
 interface UserProfile {
   name: string;
@@ -29,6 +30,13 @@ const Profile = () => {
 
   const [newGoal, setNewGoal] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
+  const [userStats, setUserStats] = useState({
+    journalEntries: 0,
+    moodLogs: 0,
+    habitsCompleted: 0,
+    activeGoals: 0
+  });
 
   const goalOptions = [
     'Drink 8 glasses of water daily',
@@ -44,15 +52,58 @@ const Profile = () => {
   ];
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile');
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile));
+    const email = localStorage.getItem('glowup_userEmail');
+    const name = localStorage.getItem('glowup_userName');
+    
+    if (email) {
+      setUserEmail(email);
+      const userData = userDataService.getUserData(email);
+      
+      if (userData) {
+        setProfile({
+          name: userData.name || name || '',
+          email: userData.email,
+          dateOfBirth: userData.profile?.dateOfBirth || '',
+          preferences: {
+            receiveTips: userData.preferences?.notifications || true,
+            darkMode: userData.preferences?.theme === 'dark',
+            notifications: userData.preferences?.notifications || true,
+          },
+          goals: userData.profile?.goals || []
+        });
+
+        // Calculate user stats
+        setUserStats({
+          journalEntries: userData.journalEntries?.length || 0,
+          moodLogs: userData.moodData?.length || 0,
+          habitsCompleted: userData.habits?.reduce((total: number, habit: any) => 
+            total + habit.completedDates.length, 0) || 0,
+          activeGoals: userData.profile?.goals?.length || 0
+        });
+      }
     }
   }, []);
 
   const saveProfile = (updatedProfile: UserProfile) => {
     setProfile(updatedProfile);
-    localStorage.setItem('userProfile', JSON.stringify(updatedProfile));
+    
+    if (!userEmail) return;
+    
+    const userData = userDataService.getUserData(userEmail);
+    if (!userData) return;
+
+    // Update user data with profile changes
+    userData.name = updatedProfile.name;
+    userData.email = updatedProfile.email;
+    userData.profile.dateOfBirth = updatedProfile.dateOfBirth;
+    userData.profile.goals = updatedProfile.goals;
+    userData.preferences.notifications = updatedProfile.preferences.notifications;
+    userData.preferences.theme = updatedProfile.preferences.darkMode ? 'dark' : 'light';
+
+    userDataService.saveUserData(userEmail, userData);
+    
+    // Update localStorage for name
+    localStorage.setItem('glowup_userName', updatedProfile.name);
   };
 
   const addGoal = (goal: string) => {
@@ -63,6 +114,7 @@ const Profile = () => {
       };
       saveProfile(updatedProfile);
       setNewGoal('');
+      setUserStats(prev => ({ ...prev, activeGoals: prev.activeGoals + 1 }));
     }
   };
 
@@ -72,6 +124,7 @@ const Profile = () => {
       goals: profile.goals.filter(goal => goal !== goalToRemove)
     };
     saveProfile(updatedProfile);
+    setUserStats(prev => ({ ...prev, activeGoals: Math.max(0, prev.activeGoals - 1) }));
   };
 
   const updatePreference = (key: keyof UserProfile['preferences'], value: boolean) => {
@@ -83,6 +136,11 @@ const Profile = () => {
       }
     };
     saveProfile(updatedProfile);
+  };
+
+  const handleSaveBasicInfo = () => {
+    saveProfile(profile);
+    setIsEditing(false);
   };
 
   return (
@@ -105,7 +163,7 @@ const Profile = () => {
                 <h3 className="text-xl font-semibold text-gray-800">Personal Information</h3>
               </div>
               <button
-                onClick={() => setIsEditing(!isEditing)}
+                onClick={() => isEditing ? handleSaveBasicInfo() : setIsEditing(true)}
                 className="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors"
               >
                 {isEditing ? 'Save' : 'Edit'}
@@ -285,19 +343,19 @@ const Profile = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Journal Entries</span>
-                <span className="font-bold text-yellow-600">12</span>
+                <span className="font-bold text-yellow-600">{userStats.journalEntries}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Mood Logs</span>
-                <span className="font-bold text-purple-600">18</span>
+                <span className="font-bold text-purple-600">{userStats.moodLogs}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Habits Completed</span>
-                <span className="font-bold text-green-600">45</span>
+                <span className="font-bold text-green-600">{userStats.habitsCompleted}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Active Goals</span>
-                <span className="font-bold text-pink-600">{profile.goals.length}</span>
+                <span className="font-bold text-pink-600">{userStats.activeGoals}</span>
               </div>
             </div>
           </div>
