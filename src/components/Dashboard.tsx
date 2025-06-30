@@ -1,14 +1,58 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, Book, CheckCircle, Sparkles } from 'lucide-react';
+import { userDataService } from '../services/userDataService';
 
 const Dashboard = () => {
+  const [userHabits, setUserHabits] = useState<any[]>([]);
+  const [userEmail, setUserEmail] = useState('');
+
+  useEffect(() => {
+    const email = localStorage.getItem('userEmail');
+    if (email) {
+      setUserEmail(email);
+      const userData = userDataService.getUserData(email);
+      if (userData) {
+        setUserHabits(userData.habits);
+      }
+    }
+  }, []);
+
   const todaysDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
+
+  const today = new Date().toISOString().split('T')[0];
+
+  const toggleHabitCompletion = (habitId: string) => {
+    if (!userEmail) return;
+
+    const userData = userDataService.getUserData(userEmail);
+    if (!userData) return;
+
+    const habitIndex = userData.habits.findIndex(h => h.id === habitId);
+    if (habitIndex === -1) return;
+
+    const habit = userData.habits[habitIndex];
+    const isCompleted = habit.completedDates.includes(today);
+
+    if (isCompleted) {
+      // Remove today from completed dates
+      habit.completedDates = habit.completedDates.filter(date => date !== today);
+      habit.streak = Math.max(0, habit.streak - 1);
+    } else {
+      // Add today to completed dates
+      habit.completedDates.push(today);
+      habit.streak += 1;
+    }
+
+    userData.habits[habitIndex] = habit;
+    userDataService.saveUserData(userEmail, userData);
+    setUserHabits([...userData.habits]);
+  };
 
   const dailyTips = [
     "Remember to drink plenty of water today! Staying hydrated helps your skin glow and keeps your energy levels up. 💧",
@@ -78,7 +122,7 @@ const Dashboard = () => {
             <div
               key={i}
               className={`aspect-square rounded-full text-xs flex items-center justify-center ${
-                i === 15 
+                i === new Date().getDate() - 1
                   ? 'bg-purple-200 dark:bg-purple-700 text-purple-700 dark:text-purple-200' 
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
               }`}
@@ -87,7 +131,7 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
-        <p className="text-sm text-gray-600 dark:text-gray-300">Today: Feeling grateful 💜</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">Start tracking your mood! 💜</p>
       </div>
 
       {/* Today's Habits */}
@@ -99,27 +143,38 @@ const Dashboard = () => {
           <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Today's Habits</h3>
         </div>
         <div className="space-y-3">
-          {[
-            { habit: 'Drink 8 glasses of water', completed: true },
-            { habit: 'Morning skincare routine', completed: true },
-            { habit: 'Take a 10-minute walk', completed: false },
-            { habit: 'Practice gratitude', completed: false },
-          ].map((item, index) => (
-            <div key={index} className="flex items-center space-x-3">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center ${
-                item.completed ? 'bg-mint-400 text-white' : 'bg-gray-200 dark:bg-gray-600'
-              }`}>
-                {item.completed && <CheckCircle className="w-3 h-3" />}
+          {userHabits.map((habit) => {
+            const isCompleted = habit.completedDates.includes(today);
+            return (
+              <div key={habit.id} className="flex items-center space-x-3">
+                <button
+                  onClick={() => toggleHabitCompletion(habit.id)}
+                  className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${
+                    isCompleted ? 'bg-mint-400 text-white' : 'bg-gray-200 dark:bg-gray-600 hover:bg-mint-200 dark:hover:bg-mint-600'
+                  }`}
+                >
+                  {isCompleted && <CheckCircle className="w-3 h-3" />}
+                </button>
+                <span className={`text-sm flex-1 ${
+                  isCompleted 
+                    ? 'text-gray-800 dark:text-gray-200 line-through' 
+                    : 'text-gray-600 dark:text-gray-300'
+                }`}>
+                  {habit.name}
+                </span>
+                {habit.streak > 0 && (
+                  <span className="text-xs bg-mint-100 dark:bg-mint-900 text-mint-700 dark:text-mint-300 px-2 py-1 rounded-full">
+                    🔥 {habit.streak}
+                  </span>
+                )}
               </div>
-              <span className={`text-sm ${
-                item.completed 
-                  ? 'text-gray-800 dark:text-gray-200 line-through' 
-                  : 'text-gray-600 dark:text-gray-300'
-              }`}>
-                {item.habit}
-              </span>
-            </div>
-          ))}
+            );
+          })}
+          {userHabits.length === 0 && (
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+              No habits yet. Start building healthy routines!
+            </p>
+          )}
         </div>
       </div>
     </div>

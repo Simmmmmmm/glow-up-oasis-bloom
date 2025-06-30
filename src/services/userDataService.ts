@@ -52,15 +52,27 @@ interface UserData {
 
 export const userDataService = {
   getUserData: (email: string): UserData | null => {
-    const data = localStorage.getItem(`userData_${email}`);
-    return data ? JSON.parse(data) : null;
+    try {
+      const data = localStorage.getItem(`glowup_user_${email}`);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error retrieving user data:', error);
+      return null;
+    }
   },
 
   saveUserData: (email: string, data: UserData) => {
-    localStorage.setItem(`userData_${email}`, JSON.stringify(data));
+    try {
+      localStorage.setItem(`glowup_user_${email}`, JSON.stringify(data));
+      console.log('User data saved successfully for:', email);
+    } catch (error) {
+      console.error('Error saving user data:', error);
+    }
   },
 
   createNewUser: (email: string, name: string): UserData => {
+    console.log('Creating new user:', email, name);
+    
     const newUserData: UserData = {
       email,
       name,
@@ -77,7 +89,7 @@ export const userDataService = {
       journalEntries: [],
       habits: [
         {
-          id: '1',
+          id: `habit_${Date.now()}_1`,
           name: 'Drink 8 glasses of water',
           category: 'Health',
           frequency: 'daily',
@@ -85,9 +97,25 @@ export const userDataService = {
           streak: 0,
         },
         {
-          id: '2',
+          id: `habit_${Date.now()}_2`,
           name: 'Morning skincare routine',
           category: 'Self-care',
+          frequency: 'daily',
+          completedDates: [],
+          streak: 0,
+        },
+        {
+          id: `habit_${Date.now()}_3`,
+          name: 'Take a 10-minute walk',
+          category: 'Fitness',
+          frequency: 'daily',
+          completedDates: [],
+          streak: 0,
+        },
+        {
+          id: `habit_${Date.now()}_4`,
+          name: 'Practice gratitude',
+          category: 'Mental Health',
           frequency: 'daily',
           completedDates: [],
           streak: 0,
@@ -101,12 +129,52 @@ export const userDataService = {
     };
     
     userDataService.saveUserData(email, newUserData);
+    console.log('New user created and saved:', newUserData);
     return newUserData;
   },
 
   resetUserData: (email: string) => {
     if (email) {
-      localStorage.removeItem(`userData_${email}`);
+      try {
+        localStorage.removeItem(`glowup_user_${email}`);
+        console.log('User data reset for:', email);
+      } catch (error) {
+        console.error('Error resetting user data:', error);
+      }
     }
   },
+
+  // Get user-specific stats for dashboard
+  getUserStats: (email: string) => {
+    const userData = userDataService.getUserData(email);
+    if (!userData) {
+      return {
+        journalEntries: 0,
+        habitsCompleted: '0/0',
+        streakDays: 0,
+        moodScore: 'N/A'
+      };
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const completedHabitsToday = userData.habits.filter(habit => 
+      habit.completedDates.includes(today)
+    ).length;
+    
+    const totalHabits = userData.habits.length;
+    const maxStreak = Math.max(...userData.habits.map(h => h.streak), 0);
+    
+    // Calculate average mood score from recent entries
+    const recentMoods = userData.moodData.slice(-7);
+    const avgMood = recentMoods.length > 0 
+      ? (recentMoods.reduce((sum, mood) => sum + mood.energy, 0) / recentMoods.length).toFixed(1)
+      : 'N/A';
+
+    return {
+      journalEntries: userData.journalEntries.length,
+      habitsCompleted: `${completedHabitsToday}/${totalHabits}`,
+      streakDays: maxStreak,
+      moodScore: avgMood
+    };
+  }
 };

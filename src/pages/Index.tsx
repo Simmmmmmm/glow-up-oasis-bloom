@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { userDataService } from '../services/userDataService';
@@ -24,8 +23,8 @@ const Index = () => {
 
   useEffect(() => {
     // Check if user is already logged in
-    const savedAuth = localStorage.getItem('isAuthenticated');
-    const userEmail = localStorage.getItem('userEmail');
+    const savedAuth = localStorage.getItem('glowup_isAuthenticated');
+    const userEmail = localStorage.getItem('glowup_userEmail');
     
     if (savedAuth === 'true' && userEmail) {
       setIsAuthenticated(true);
@@ -40,13 +39,13 @@ const Index = () => {
   }, []);
 
   const handleLogin = (email: string, password: string) => {
-    console.log('Logging in with:', email, password);
+    console.log('Logging in with:', email);
     
     // Check if user exists
     let userData = userDataService.getUserData(email);
     if (!userData) {
       // Create new user if doesn't exist
-      userData = userDataService.createNewUser(email, localStorage.getItem('userName') || 'User');
+      userData = userDataService.createNewUser(email, localStorage.getItem('glowup_userName') || 'User');
       setShowOnboarding(true);
     } else {
       // Check if existing user needs onboarding
@@ -57,46 +56,40 @@ const Index = () => {
     
     setIsAuthenticated(true);
     setCurrentUser(email);
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userEmail', email);
+    localStorage.setItem('glowup_isAuthenticated', 'true');
+    localStorage.setItem('glowup_userEmail', email);
   };
 
   const handleGoogleLogin = () => {
-    // Simulate Google OAuth with demo user
-    const demoEmail = 'demo@glowup.com';
+    // Simulate Google OAuth with demo user - create unique email each time
+    const timestamp = Date.now();
+    const demoEmail = `demo_${timestamp}@glowup.com`;
     const demoName = 'Demo User';
     
-    console.log('Google login successful');
+    console.log('Google login successful for:', demoEmail);
     
-    let userData = userDataService.getUserData(demoEmail);
-    if (!userData) {
-      userData = userDataService.createNewUser(demoEmail, demoName);
-      setShowOnboarding(true);
-    } else {
-      // Check if existing user needs onboarding
-      if (!userData.profile || userData.profile.goals.length === 0) {
-        setShowOnboarding(true);
-      }
-    }
+    // Always create new user for demo
+    const userData = userDataService.createNewUser(demoEmail, demoName);
+    setShowOnboarding(true);
     
     setIsAuthenticated(true);
     setCurrentUser(demoEmail);
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userEmail', demoEmail);
-    localStorage.setItem('userName', demoName);
+    localStorage.setItem('glowup_isAuthenticated', 'true');
+    localStorage.setItem('glowup_userEmail', demoEmail);
+    localStorage.setItem('glowup_userName', demoName);
   };
 
   const handleRegister = (email: string, password: string, name: string) => {
-    console.log('Registering with:', email, password, name);
+    console.log('Registering new user:', email, name);
     
     // Create new user
     userDataService.createNewUser(email, name);
     setShowOnboarding(true);
     setIsAuthenticated(true);
     setCurrentUser(email);
-    localStorage.setItem('isAuthenticated', 'true');
-    localStorage.setItem('userEmail', email);
-    localStorage.setItem('userName', name);
+    localStorage.setItem('glowup_isAuthenticated', 'true');
+    localStorage.setItem('glowup_userEmail', email);
+    localStorage.setItem('glowup_userName', name);
   };
 
   const handleOnboardingComplete = (onboardingData: {
@@ -119,16 +112,17 @@ const Index = () => {
     
     // Set onboarding as complete
     setShowOnboarding(false);
-    console.log('Onboarding state set to false, should redirect to dashboard');
+    console.log('Onboarding complete, redirecting to dashboard');
   };
 
   const handleLogout = () => {
+    console.log('Logging out user:', currentUser);
     setIsAuthenticated(false);
     setCurrentUser('');
     setShowOnboarding(false);
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('userName');
+    localStorage.removeItem('glowup_isAuthenticated');
+    localStorage.removeItem('glowup_userEmail');
+    localStorage.removeItem('glowup_userName');
     setActiveTab('home');
   };
 
@@ -168,7 +162,7 @@ const Index = () => {
   }
 
   // Main app interface
-  console.log('Rendering main dashboard');
+  console.log('Rendering main dashboard for user:', currentUser);
 
   const renderContent = () => {
     switch (activeTab) {

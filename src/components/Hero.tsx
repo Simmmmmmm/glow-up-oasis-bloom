@@ -1,15 +1,33 @@
 
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Heart, Calendar, BookOpen, Target, TrendingUp } from 'lucide-react';
+import { userDataService } from '../services/userDataService';
 
 const Hero = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [userName, setUserName] = useState('');
+  const [userStats, setUserStats] = useState({
+    journalEntries: 0,
+    habitsCompleted: '0/0',
+    streakDays: 0,
+    moodScore: 'N/A'
+  });
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    
+    // Get user info from localStorage
     const name = localStorage.getItem('userName') || 'Beautiful';
+    const userEmail = localStorage.getItem('userEmail');
+    
     setUserName(name);
+    
+    // Get user-specific stats
+    if (userEmail) {
+      const stats = userDataService.getUserStats(userEmail);
+      setUserStats(stats);
+    }
+    
     return () => clearInterval(timer);
   }, []);
 
@@ -42,10 +60,10 @@ const Hero = () => {
   );
 
   const quickStats = [
-    { icon: BookOpen, label: 'Journal Entries', value: '12', color: 'from-pink-400 to-pink-500' },
-    { icon: Target, label: 'Habits Completed', value: '8/10', color: 'from-purple-400 to-purple-500' },
-    { icon: Calendar, label: 'Streak Days', value: '5', color: 'from-mint-400 to-mint-500' },
-    { icon: TrendingUp, label: 'Mood Score', value: '8.2', color: 'from-indigo-400 to-indigo-500' },
+    { icon: BookOpen, label: 'Journal Entries', value: userStats.journalEntries.toString(), color: 'from-pink-400 to-pink-500' },
+    { icon: Target, label: 'Habits Completed', value: userStats.habitsCompleted, color: 'from-purple-400 to-purple-500' },
+    { icon: Calendar, label: 'Streak Days', value: userStats.streakDays.toString(), color: 'from-mint-400 to-mint-500' },
+    { icon: TrendingUp, label: 'Mood Score', value: userStats.moodScore.toString(), color: 'from-indigo-400 to-indigo-500' },
   ];
 
   return (
