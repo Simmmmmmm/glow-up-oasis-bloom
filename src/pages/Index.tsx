@@ -79,8 +79,8 @@ const Index = () => {
     localStorage.setItem('glowup_userName', demoName);
   };
 
-  const handleRegister = (email: string, password: string, name: string) => {
-    console.log('Registering new user:', email, name);
+  const handleRegister = (email: string, password: string, name: string, dateOfBirth?: string) => {
+    console.log('Registering new user:', email, name, dateOfBirth ? `DOB: ${dateOfBirth}` : 'No DOB provided');
     
     // Check if user already exists
     const existingUser = userDataService.getUserData(email);
@@ -92,6 +92,13 @@ const Index = () => {
     
     // Create completely fresh user with reset mood and habit data
     const newUser = userDataService.createNewUser(email, name);
+    
+    // Add date of birth if provided
+    if (dateOfBirth) {
+      newUser.profile.dateOfBirth = dateOfBirth;
+    }
+    
+    userDataService.saveUserData(email, newUser);
     userDataService.resetMoodData(email);
     userDataService.resetHabitData(email);
     
