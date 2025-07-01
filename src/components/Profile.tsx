@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { User, Settings, Bell, Moon, Sun, Heart, Target } from 'lucide-react';
+import { User, Settings, Bell, Heart, Target, LogOut } from 'lucide-react';
 import { userDataService } from '../services/userDataService';
 
 interface UserProfile {
@@ -9,7 +9,6 @@ interface UserProfile {
   dateOfBirth: string;
   preferences: {
     receiveTips: boolean;
-    darkMode: boolean;
     notifications: boolean;
   };
   goals: string[];
@@ -22,7 +21,6 @@ const Profile = () => {
     dateOfBirth: '',
     preferences: {
       receiveTips: true,
-      darkMode: false,
       notifications: true,
     },
     goals: []
@@ -66,7 +64,6 @@ const Profile = () => {
           dateOfBirth: userData.profile?.dateOfBirth || '',
           preferences: {
             receiveTips: userData.preferences?.notifications || true,
-            darkMode: userData.preferences?.theme === 'dark',
             notifications: userData.preferences?.notifications || true,
           },
           goals: userData.profile?.goals || []
@@ -98,7 +95,6 @@ const Profile = () => {
     userData.profile.dateOfBirth = updatedProfile.dateOfBirth;
     userData.profile.goals = updatedProfile.goals;
     userData.preferences.notifications = updatedProfile.preferences.notifications;
-    userData.preferences.theme = updatedProfile.preferences.darkMode ? 'dark' : 'light';
 
     userDataService.saveUserData(userEmail, userData);
     
@@ -143,28 +139,39 @@ const Profile = () => {
     setIsEditing(false);
   };
 
+  const handleLogout = () => {
+    // Clear all user data from localStorage
+    localStorage.removeItem('glowup_userEmail');
+    localStorage.removeItem('glowup_userName');
+    localStorage.removeItem('glowup_isLoggedIn');
+    localStorage.removeItem('glowup_onboardingComplete');
+    
+    // Reload the page to reset the app state
+    window.location.reload();
+  };
+
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Profile & Settings</h2>
-        <p className="text-gray-600">Customize your GlowUp experience</p>
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">Profile & Settings</h2>
+        <p className="text-gray-600 dark:text-gray-300">Customize your GlowUp experience</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Profile Information */}
         <div className="lg:col-span-2 space-y-6">
           {/* Basic Info */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-pink-100">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-sm border border-pink-100 dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-r from-pink-400 to-purple-400 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800">Personal Information</h3>
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">Personal Information</h3>
               </div>
               <button
                 onClick={() => isEditing ? handleSaveBasicInfo() : setIsEditing(true)}
-                className="px-4 py-2 bg-pink-100 text-pink-700 rounded-lg hover:bg-pink-200 transition-colors"
+                className="px-4 py-2 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-lg hover:bg-pink-200 dark:hover:bg-pink-900/50 transition-colors text-sm sm:text-base"
               >
                 {isEditing ? 'Save' : 'Edit'}
               </button>
@@ -172,57 +179,57 @@ const Profile = () => {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
                 <input
                   type="text"
                   value={profile.name}
                   onChange={(e) => setProfile({ ...profile, name: e.target.value })}
                   disabled={!isEditing}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent disabled:bg-gray-50"
+                  className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="Your name"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
                 <input
                   type="email"
                   value={profile.email}
                   onChange={(e) => setProfile({ ...profile, email: e.target.value })}
                   disabled={!isEditing}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent disabled:bg-gray-50"
+                  className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="your.email@example.com"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date of Birth</label>
                 <input
                   type="date"
                   value={profile.dateOfBirth}
                   onChange={(e) => setProfile({ ...profile, dateOfBirth: e.target.value })}
                   disabled={!isEditing}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent disabled:bg-gray-50"
+                  className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
             </div>
           </div>
 
           {/* Wellness Goals */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-purple-100">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-sm border border-purple-100 dark:border-gray-700">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
-                <Target className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center">
+                <Target className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-800">Wellness Goals</h3>
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-white">Wellness Goals</h3>
             </div>
 
             <div className="mb-6">
-              <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <select
                   value={newGoal}
                   onChange={(e) => setNewGoal(e.target.value)}
-                  className="flex-1 p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-300 focus:border-transparent"
+                  className="flex-1 p-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-300 dark:focus:ring-purple-400 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="">Select a goal...</option>
                   {goalOptions.filter(goal => !profile.goals.includes(goal)).map((goal, index) => (
@@ -232,7 +239,7 @@ const Profile = () => {
                 <button
                   onClick={() => addGoal(newGoal)}
                   disabled={!newGoal}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   Add Goal
                 </button>
@@ -241,17 +248,17 @@ const Profile = () => {
 
             <div className="space-y-3">
               {profile.goals.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">No goals set yet. Add some goals to track your wellness journey!</p>
+                <p className="text-gray-500 dark:text-gray-400 text-center py-8 text-sm sm:text-base">No goals set yet. Add some goals to track your wellness journey!</p>
               ) : (
                 profile.goals.map((goal, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-purple-50 rounded-xl">
+                  <div key={index} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl gap-3">
                     <div className="flex items-center space-x-3">
-                      <Heart className="w-5 h-5 text-purple-600" />
-                      <span className="text-purple-800">{goal}</span>
+                      <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                      <span className="text-purple-800 dark:text-purple-300 text-sm sm:text-base">{goal}</span>
                     </div>
                     <button
                       onClick={() => removeGoal(goal)}
-                      className="text-red-500 hover:text-red-700 text-sm"
+                      className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm self-start sm:self-center"
                     >
                       Remove
                     </button>
@@ -265,71 +272,51 @@ const Profile = () => {
         {/* Settings Panel */}
         <div className="space-y-6">
           {/* Preferences */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-mint-100">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-sm border border-mint-100 dark:border-gray-700">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-gradient-to-r from-mint-400 to-green-400 rounded-full flex items-center justify-center">
-                <Settings className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-mint-400 to-green-400 rounded-full flex items-center justify-center">
+                <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800">Preferences</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">Preferences</h3>
             </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Bell className="w-5 h-5 text-gray-600" />
+                  <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-800">Notifications</p>
-                    <p className="text-sm text-gray-500">Receive habit reminders</p>
+                    <p className="font-medium text-gray-800 dark:text-white text-sm sm:text-base">Notifications</p>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Receive habit reminders</p>
                   </div>
                 </div>
                 <button
                   onClick={() => updatePreference('notifications', !profile.preferences.notifications)}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    profile.preferences.notifications ? 'bg-green-400' : 'bg-gray-300'
+                  className={`w-10 h-5 sm:w-12 sm:h-6 rounded-full transition-colors ${
+                    profile.preferences.notifications ? 'bg-green-400' : 'bg-gray-300 dark:bg-gray-600'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                    profile.preferences.notifications ? 'translate-x-6' : 'translate-x-0.5'
+                  <div className={`w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full shadow transition-transform ${
+                    profile.preferences.notifications ? 'translate-x-5 sm:translate-x-6' : 'translate-x-0.5'
                   }`}></div>
                 </button>
               </div>
 
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Heart className="w-5 h-5 text-gray-600" />
+                  <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-800">Daily Tips</p>
-                    <p className="text-sm text-gray-500">Receive wellness tips</p>
+                    <p className="font-medium text-gray-800 dark:text-white text-sm sm:text-base">Daily Tips</p>
+                    <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Receive wellness tips</p>
                   </div>
                 </div>
                 <button
                   onClick={() => updatePreference('receiveTips', !profile.preferences.receiveTips)}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    profile.preferences.receiveTips ? 'bg-pink-400' : 'bg-gray-300'
+                  className={`w-10 h-5 sm:w-12 sm:h-6 rounded-full transition-colors ${
+                    profile.preferences.receiveTips ? 'bg-pink-400' : 'bg-gray-300 dark:bg-gray-600'
                   }`}
                 >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                    profile.preferences.receiveTips ? 'translate-x-6' : 'translate-x-0.5'
-                  }`}></div>
-                </button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  {profile.preferences.darkMode ? <Moon className="w-5 h-5 text-gray-600" /> : <Sun className="w-5 h-5 text-gray-600" />}
-                  <div>
-                    <p className="font-medium text-gray-800">Dark Mode</p>
-                    <p className="text-sm text-gray-500">Toggle app theme</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => updatePreference('darkMode', !profile.preferences.darkMode)}
-                  className={`w-12 h-6 rounded-full transition-colors ${
-                    profile.preferences.darkMode ? 'bg-purple-400' : 'bg-gray-300'
-                  }`}
-                >
-                  <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                    profile.preferences.darkMode ? 'translate-x-6' : 'translate-x-0.5'
+                  <div className={`w-4 h-4 sm:w-5 sm:h-5 bg-white rounded-full shadow transition-transform ${
+                    profile.preferences.receiveTips ? 'translate-x-5 sm:translate-x-6' : 'translate-x-0.5'
                   }`}></div>
                 </button>
               </div>
@@ -337,27 +324,44 @@ const Profile = () => {
           </div>
 
           {/* Stats Summary */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-yellow-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Your Progress</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-sm border border-yellow-100 dark:border-gray-700">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white mb-4">Your Progress</h3>
             
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Journal Entries</span>
-                <span className="font-bold text-yellow-600">{userStats.journalEntries}</span>
+                <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Journal Entries</span>
+                <span className="font-bold text-yellow-600 dark:text-yellow-400">{userStats.journalEntries}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Mood Logs</span>
-                <span className="font-bold text-purple-600">{userStats.moodLogs}</span>
+                <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Mood Logs</span>
+                <span className="font-bold text-purple-600 dark:text-purple-400">{userStats.moodLogs}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Habits Completed</span>
-                <span className="font-bold text-green-600">{userStats.habitsCompleted}</span>
+                <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Habits Completed</span>
+                <span className="font-bold text-green-600 dark:text-green-400">{userStats.habitsCompleted}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Active Goals</span>
-                <span className="font-bold text-pink-600">{userStats.activeGoals}</span>
+                <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">Active Goals</span>
+                <span className="font-bold text-pink-600 dark:text-pink-400">{userStats.activeGoals}</span>
               </div>
             </div>
+          </div>
+
+          {/* Logout Button */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-sm border border-red-100 dark:border-gray-700">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-red-400 to-pink-400 rounded-full flex items-center justify-center">
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">Account</h3>
+            </div>
+            
+            <button
+              onClick={handleLogout}
+              className="w-full px-4 py-3 bg-gradient-to-r from-red-400 to-pink-400 text-white rounded-lg hover:from-red-500 hover:to-pink-500 transition-all duration-200 font-medium text-sm sm:text-base"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </div>
