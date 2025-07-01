@@ -73,7 +73,7 @@ export const userDataService = {
   createNewUser: (email: string, name: string): UserData => {
     console.log('Creating completely fresh user:', email, name);
     
-    // Generate unique IDs for this user
+    // Generate unique IDs for this user to avoid conflicts
     const timestamp = Date.now();
     const uniqueId = Math.random().toString(36).substr(2, 9);
     
@@ -125,13 +125,15 @@ export const userDataService = {
           streak: 0,
         },
       ],
-      moodData: [],
+      moodData: [], // Completely empty for new users
       periodData: {
         cycles: [],
         predictions: {},
       },
     };
     
+    // Clear any existing data for this email first
+    userDataService.resetUserData(email);
     userDataService.saveUserData(email, newUserData);
     console.log('Fresh user created and saved:', newUserData);
     return newUserData;
@@ -141,10 +143,37 @@ export const userDataService = {
     if (email) {
       try {
         localStorage.removeItem(`glowup_user_${email}`);
-        console.log('User data reset for:', email);
+        // Also clear any cached mood or habit data
+        localStorage.removeItem(`glowup_mood_${email}`);
+        localStorage.removeItem(`glowup_habits_${email}`);
+        console.log('User data completely reset for:', email);
       } catch (error) {
         console.error('Error resetting user data:', error);
       }
+    }
+  },
+
+  // Enhanced method to ensure fresh mood data
+  resetMoodData: (email: string) => {
+    const userData = userDataService.getUserData(email);
+    if (userData) {
+      userData.moodData = [];
+      userDataService.saveUserData(email, userData);
+      console.log('Mood data reset for user:', email);
+    }
+  },
+
+  // Enhanced method to ensure fresh habit data
+  resetHabitData: (email: string) => {
+    const userData = userDataService.getUserData(email);
+    if (userData) {
+      userData.habits = userData.habits.map(habit => ({
+        ...habit,
+        completedDates: [],
+        streak: 0
+      }));
+      userDataService.saveUserData(email, userData);
+      console.log('Habit data reset for user:', email);
     }
   },
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { userDataService } from '../services/userDataService';
@@ -62,15 +61,15 @@ const Index = () => {
   };
 
   const handleGoogleLogin = () => {
-    // Simulate Google OAuth with demo user - create unique email each time
+    // Create unique demo user each time
     const timestamp = Date.now();
     const demoEmail = `demo_${timestamp}@glowup.com`;
     const demoName = 'Demo User';
     
     console.log('Google login successful for:', demoEmail);
     
-    // Always create new user for demo
-    const userData = userDataService.createNewUser(demoEmail, demoName);
+    // Always create completely fresh user for demo
+    userDataService.createNewUser(demoEmail, demoName);
     setShowOnboarding(true);
     
     setIsAuthenticated(true);
@@ -91,8 +90,11 @@ const Index = () => {
       return;
     }
     
-    // Create new user with completely fresh data
-    userDataService.createNewUser(email, name);
+    // Create completely fresh user with reset mood and habit data
+    const newUser = userDataService.createNewUser(email, name);
+    userDataService.resetMoodData(email);
+    userDataService.resetHabitData(email);
+    
     setShowOnboarding(true);
     setIsAuthenticated(true);
     setCurrentUser(email);
@@ -200,7 +202,7 @@ const Index = () => {
 
   return (
     <ThemeProvider>
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-mint-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-slate-800 transition-colors duration-300">
         <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
         <main className="container mx-auto px-4 py-6">
           {renderContent()}
@@ -209,7 +211,7 @@ const Index = () => {
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="fixed bottom-4 right-4 bg-gray-600 dark:bg-gray-800 text-white px-4 py-2 rounded-full text-sm hover:bg-gray-700 dark:hover:bg-gray-700 transition-colors opacity-50 hover:opacity-100"
+          className="fixed bottom-4 right-4 bg-slate-700 dark:bg-slate-600 text-white px-4 py-2 rounded-full text-sm hover:bg-slate-800 dark:hover:bg-slate-500 transition-colors opacity-70 hover:opacity-100 shadow-lg"
         >
           Logout
         </button>
