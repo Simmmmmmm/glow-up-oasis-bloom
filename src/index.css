@@ -75,37 +75,55 @@
   }
 }
 
-/* Enhanced dark mode styles */
+/* Enhanced dark mode styles with white text */
 .dark {
   color-scheme: dark;
+  color: white;
+}
+
+/* Ensure all text is white in dark mode */
+.dark * {
+  color: white !important;
+}
+
+/* Override specific elements that need different colors */
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-gray-600,
+.dark .text-gray-500,
+.dark .text-gray-400,
+.dark .text-gray-300 {
+  color: white !important;
+}
+
+.dark .text-purple-800,
+.dark .text-purple-700,
+.dark .text-purple-600 {
+  color: #e9d5ff !important;
+}
+
+.dark .text-pink-800,
+.dark .text-pink-700,
+.dark .text-pink-600 {
+  color: #fce7f3 !important;
+}
+
+.dark .text-mint-800,
+.dark .text-mint-700,
+.dark .text-mint-600 {
+  color: #a7f3d0 !important;
 }
 
 .dark .bg-white\/80 {
-  @apply bg-slate-900/95;
+  @apply bg-slate-800/95;
 }
 
 .dark .bg-gradient-to-r {
-  @apply from-slate-900 to-slate-800;
+  @apply from-slate-800 to-slate-700;
 }
 
 .dark .bg-gradient-to-br {
-  @apply from-slate-900 via-purple-900/20 to-slate-800;
-}
-
-.dark .text-gray-800 {
-  @apply text-slate-100;
-}
-
-.dark .text-gray-600 {
-  @apply text-slate-300;
-}
-
-.dark .text-gray-500 {
-  @apply text-slate-400;
-}
-
-.dark .text-gray-700 {
-  @apply text-slate-200;
+  @apply from-slate-800 via-purple-900/30 to-slate-700;
 }
 
 .dark .bg-white {
@@ -115,15 +133,15 @@
 .dark .border-pink-100,
 .dark .border-purple-100,
 .dark .border-mint-100 {
-  @apply border-slate-700;
+  @apply border-slate-600;
 }
 
 .dark .border-gray-100 {
-  @apply border-slate-700;
+  @apply border-slate-600;
 }
 
 .dark .border-gray-200 {
-  @apply border-slate-600;
+  @apply border-slate-500;
 }
 
 .dark .bg-gray-50 {
@@ -131,59 +149,63 @@
 }
 
 .dark .bg-gray-100 {
-  @apply bg-slate-800;
+  @apply bg-slate-700;
 }
 
 .dark .bg-purple-50 {
-  @apply bg-purple-900/20;
+  @apply bg-purple-900/30;
 }
 
-.dark .text-purple-800 {
-  @apply text-purple-300;
-}
-
-.dark .text-purple-700 {
-  @apply text-purple-200;
-}
-
-/* Enhanced dark mode for auth forms */
 .dark .bg-pink-50 {
-  @apply bg-slate-900;
-}
-
-.dark .bg-purple-50 {
-  @apply bg-purple-900/20;
+  @apply bg-slate-800;
 }
 
 .dark .bg-mint-50 {
   @apply bg-slate-800;
 }
 
-.dark .border-pink-100 {
-  @apply border-slate-700;
-}
-
 /* Better dark mode for inputs and buttons */
 .dark input[type="email"],
 .dark input[type="password"],
 .dark input[type="text"] {
-  @apply bg-slate-800 border-slate-600 text-slate-100 placeholder-slate-400;
+  @apply bg-slate-700 border-slate-500 text-white placeholder-slate-300;
 }
 
 .dark input[type="email"]:focus,
 .dark input[type="password"]:focus,
 .dark input[type="text"]:focus {
-  @apply border-purple-500 ring-purple-500/20;
+  @apply border-purple-400 ring-purple-400/30;
 }
 
 .dark .bg-gray-50:hover {
-  @apply bg-slate-700;
+  @apply bg-slate-600;
 }
 
-.dark .text-gray-700 {
-  @apply text-slate-200;
+/* Responsive utilities */
+@media (max-width: 640px) {
+  .container {
+    @apply px-2;
+  }
+  
+  .grid-cols-2 {
+    @apply grid-cols-1;
+  }
+  
+  .md\:grid-cols-4 {
+    @apply grid-cols-2;
+  }
 }
 
-.dark .text-gray-300 {
-  @apply text-slate-300;
+@media (max-width: 768px) {
+  .lg\:col-span-3 {
+    @apply col-span-1;
+  }
+  
+  .text-5xl {
+    @apply text-3xl;
+  }
+  
+  .text-2xl {
+    @apply text-xl;
+  }
 }

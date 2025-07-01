@@ -211,14 +211,14 @@ const Index = () => {
     <ThemeProvider>
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-slate-900 dark:via-purple-900/20 dark:to-slate-800 transition-colors duration-300">
         <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="container mx-auto px-4 py-6">
+        <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
           {renderContent()}
         </main>
         
         {/* Logout Button */}
         <button
           onClick={handleLogout}
-          className="fixed bottom-4 right-4 bg-slate-700 dark:bg-slate-600 text-white px-4 py-2 rounded-full text-sm hover:bg-slate-800 dark:hover:bg-slate-500 transition-colors opacity-70 hover:opacity-100 shadow-lg"
+          className="fixed bottom-4 right-4 bg-slate-700 dark:bg-slate-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm hover:bg-slate-800 dark:hover:bg-slate-500 transition-colors opacity-70 hover:opacity-100 shadow-lg z-50"
         >
           Logout
         </button>
