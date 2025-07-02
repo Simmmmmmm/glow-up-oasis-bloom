@@ -9,7 +9,195 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      habits: {
+        Row: {
+          category: string
+          completed_dates: string[] | null
+          created_at: string
+          frequency: string
+          id: string
+          name: string
+          streak: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          completed_dates?: string[] | null
+          created_at?: string
+          frequency?: string
+          id?: string
+          name: string
+          streak?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          completed_dates?: string[] | null
+          created_at?: string
+          frequency?: string
+          id?: string
+          name?: string
+          streak?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      journal_entries: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          mood: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          mood?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          mood?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mood_data: {
+        Row: {
+          created_at: string
+          date: string
+          energy: number | null
+          id: string
+          mood: string
+          note: string | null
+          sleep: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          energy?: number | null
+          id?: string
+          mood: string
+          note?: string | null
+          sleep?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          energy?: number | null
+          id?: string
+          mood?: string
+          note?: string | null
+          sleep?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      period_data: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          flow: string | null
+          id: string
+          start_date: string
+          symptoms: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          flow?: string | null
+          id?: string
+          start_date: string
+          symptoms?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          flow?: string | null
+          id?: string
+          start_date?: string
+          symptoms?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_data: {
+        Row: {
+          created_at: string
+          id: string
+          preferences: Json | null
+          profile: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          preferences?: Json | null
+          profile?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          preferences?: Json | null
+          profile?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
