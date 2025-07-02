@@ -75,36 +75,34 @@
   }
 }
 
-/* Enhanced dark mode styles with proper contrast */
+/* Dark mode styles */
 .dark {
   color-scheme: dark;
-  background-color: rgb(15, 23, 42); /* slate-900 */
-  color: rgb(248, 250, 252); /* slate-50 */
+  background-color: rgb(15, 23, 42);
+  color: rgb(248, 250, 252);
 }
 
-/* Ensure consistent white text in dark mode */
 .dark * {
   color: rgb(248, 250, 252) !important;
 }
 
-/* Button and interactive element visibility in dark mode */
+/* Button styles for dark mode */
 .dark button {
-  background-color: rgb(30, 41, 59) !important; /* slate-800 */
-  border-color: rgb(71, 85, 105) !important; /* slate-600 */
-  color: rgb(248, 250, 252) !important; /* slate-50 */
+  background-color: rgb(30, 41, 59) !important;
+  border-color: rgb(71, 85, 105) !important;
+  color: rgb(248, 250, 252) !important;
 }
 
 .dark button:hover {
-  background-color: rgb(51, 65, 85) !important; /* slate-700 */
+  background-color: rgb(51, 65, 85) !important;
 }
 
 .dark button:disabled {
-  background-color: rgb(15, 23, 42) !important; /* slate-900 */
-  color: rgb(148, 163, 184) !important; /* slate-400 */
+  background-color: rgb(15, 23, 42) !important;
+  color: rgb(148, 163, 184) !important;
   opacity: 0.5;
 }
 
-/* Gradient buttons maintain their gradients */
 .dark .bg-gradient-to-r {
   color: white !important;
 }
@@ -113,82 +111,82 @@
 .dark input,
 .dark select,
 .dark textarea {
-  background-color: rgb(30, 41, 59) !important; /* slate-800 */
-  border-color: rgb(71, 85, 105) !important; /* slate-600 */
-  color: rgb(248, 250, 252) !important; /* slate-50 */
+  background-color: rgb(30, 41, 59) !important;
+  border-color: rgb(71, 85, 105) !important;
+  color: rgb(248, 250, 252) !important;
 }
 
 .dark input:focus,
 .dark select:focus,
 .dark textarea:focus {
-  border-color: rgb(139, 92, 246) !important; /* violet-500 */
+  border-color: rgb(139, 92, 246) !important;
   box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
 }
 
 .dark input:disabled,
 .dark select:disabled,
 .dark textarea:disabled {
-  background-color: rgb(15, 23, 42) !important; /* slate-900 */
-  color: rgb(148, 163, 184) !important; /* slate-400 */
+  background-color: rgb(15, 23, 42) !important;
+  color: rgb(148, 163, 184) !important;
 }
 
 .dark input::placeholder,
 .dark select::placeholder,
 .dark textarea::placeholder {
-  color: rgb(148, 163, 184) !important; /* slate-400 */
+  color: rgb(148, 163, 184) !important;
 }
 
-/* Override specific color classes in dark mode */
+/* Text color overrides for dark mode */
 .dark .text-gray-800,
 .dark .text-gray-700,
 .dark .text-gray-600,
 .dark .text-gray-500,
 .dark .text-gray-400,
 .dark .text-gray-300 {
-  color: rgb(248, 250, 252) !important; /* slate-50 */
+  color: rgb(248, 250, 252) !important;
 }
 
 .dark .text-purple-800,
 .dark .text-purple-700,
 .dark .text-purple-600 {
-  color: rgb(196, 181, 253) !important; /* purple-300 */
+  color: rgb(196, 181, 253) !important;
 }
 
 .dark .text-pink-800,
 .dark .text-pink-700,
 .dark .text-pink-600 {
-  color: rgb(249, 168, 212) !important; /* pink-300 */
+  color: rgb(249, 168, 212) !important;
 }
 
 .dark .text-mint-800,
 .dark .text-mint-700,
 .dark .text-mint-600 {
-  color: rgb(134, 239, 172) !important; /* green-300 */
+  color: rgb(134, 239, 172) !important;
 }
 
 .dark .text-yellow-600 {
-  color: rgb(250, 204, 21) !important; /* yellow-400 */
+  color: rgb(250, 204, 21) !important;
 }
 
 .dark .text-green-600 {
-  color: rgb(34, 197, 94) !important; /* green-500 */
+  color: rgb(34, 197, 94) !important;
 }
 
 .dark .text-red-500 {
-  color: rgb(239, 68, 68) !important; /* red-500 */
+  color: rgb(239, 68, 68) !important;
 }
 
 /* Background colors for dark mode */
 .dark .bg-white {
-  background-color: rgb(30, 41, 59) !important; /* slate-800 */
+  background-color: rgb(30, 41, 59) !important;
 }
 
 .dark .bg-gray-50 {
-  background-color: rgb(15, 23, 42) !important; /* slate-900 */
+  background-color: rgb(15, 23, 42) !important;
 }
 
 .dark .bg-gray-100 {
-  background-color: rgb(30, 41, 59) !important; /* slate-800 */
+  background-color: rgb(30, 41, 59) !important;
 }
 
 .dark .bg-purple-50 {
@@ -223,127 +221,79 @@
 .dark .border-green-100,
 .dark .border-yellow-100,
 .dark .border-orange-100,
-.dark .border-indigo-100 {
-  border-color: rgb(71, 85, 105) !important; /* slate-600 */
-}
-
+.dark .border-indigo-100,
 .dark .border-gray-100,
 .dark .border-gray-200 {
-  border-color: rgb(71, 85, 105) !important; /* slate-600 */
+  border-color: rgb(71, 85, 105) !important;
 }
 
-/* Card hover effects */
+/* Hover effects */
 .dark .hover\:bg-gray-50:hover {
-  background-color: rgb(51, 65, 85) !important; /* slate-700 */
+  background-color: rgb(51, 65, 85) !important;
 }
 
 .dark .hover\:bg-purple-50:hover {
   background-color: rgba(139, 92, 246, 0.2) !important;
 }
 
-/* Toggle switches */
+/* Toggle and other components */
 .dark .bg-gray-300 {
-  background-color: rgb(71, 85, 105) !important; /* slate-600 */
+  background-color: rgb(71, 85, 105) !important;
 }
 
 /* Responsive utilities */
 @media (max-width: 640px) {
   .container {
-    @apply px-2;
-  }
-  
-  .grid-cols-2 {
-    @apply grid-cols-1;
-  }
-  
-  .md\:grid-cols-4 {
-    @apply grid-cols-2;
-  }
-  
-  .text-3xl {
-    @apply text-2xl;
-  }
-  
-  .text-2xl {
-    @apply text-xl;
-  }
-  
-  .text-xl {
-    @apply text-lg;
-  }
-  
-  .p-6 {
-    @apply p-4;
-  }
-  
-  .p-8 {
-    @apply p-6;
-  }
-  
-  .space-x-4 > * + * {
-    margin-left: 0.75rem;
-  }
-  
-  .space-x-6 > * + * {
-    margin-left: 1rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }
 
 @media (max-width: 768px) {
-  .lg\:col-span-3 {
-    @apply col-span-1;
-  }
-  
-  .lg\:col-span-2 {
-    @apply col-span-1;
-  }
-  
   .text-5xl {
-    @apply text-3xl;
+    font-size: 1.875rem;
+    line-height: 2.25rem;
   }
   
-  .gap-8 {
-    @apply gap-4;
+  .text-3xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
   }
   
-  .gap-6 {
-    @apply gap-4;
+  .text-2xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
   }
 }
 
-@media (max-width: 1024px) {
-  .lg\:grid-cols-4 {
-    @apply grid-cols-1;
-  }
-  
-  .lg\:grid-cols-3 {
-    @apply grid-cols-1;
-  }
-}
-
-/* Improved button visibility and spacing */
+/* Improved button visibility */
 .dark button:not(.bg-gradient-to-r) {
-  background-color: rgb(51, 65, 85) !important; /* slate-700 */
-  border: 1px solid rgb(71, 85, 105) !important; /* slate-600 */
+  background-color: rgb(51, 65, 85) !important;
+  border: 1px solid rgb(71, 85, 105) !important;
 }
 
 .dark button:not(.bg-gradient-to-r):hover {
-  background-color: rgb(71, 85, 105) !important; /* slate-600 */
+  background-color: rgb(71, 85, 105) !important;
 }
 
-/* Ensure proper text contrast on colored backgrounds */
+/* Enhanced contrast on colored backgrounds */
 .dark .bg-purple-100 {
   background-color: rgba(139, 92, 246, 0.2) !important;
-  color: rgb(196, 181, 253) !important; /* purple-300 */
+  color: rgb(196, 181, 253) !important;
 }
 
 .dark .bg-pink-100 {
   background-color: rgba(236, 72, 153, 0.2) !important;
-  color: rgb(249, 168, 212) !important; /* pink-300 */
+  color: rgb(249, 168, 212) !important;
 }
 
 .dark .bg-mint-100,
 .dark .bg-green-100 {
   background-color: rgba(34, 197, 94, 0.2) !important;
-  color: rgb(134, 239, 172) !important; /* green-300 */
+  color: rgb(134, 239, 172) !important;
 }
