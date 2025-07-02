@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { userDataService } from '../services/userDataService';
@@ -132,17 +133,6 @@ const Index = () => {
     console.log('Onboarding complete, redirecting to dashboard');
   };
 
-  const handleLogout = () => {
-    console.log('Logging out user:', currentUser);
-    setIsAuthenticated(false);
-    setCurrentUser('');
-    setShowOnboarding(false);
-    localStorage.removeItem('glowup_isAuthenticated');
-    localStorage.removeItem('glowup_userEmail');
-    localStorage.removeItem('glowup_userName');
-    setActiveTab('home');
-  };
-
   // Show onboarding for new users
   if (isAuthenticated && showOnboarding) {
     console.log('Showing onboarding screen');
@@ -201,7 +191,7 @@ const Index = () => {
       case 'wellness':
         return <WellnessTips />;
       case 'profile':
-        return <Profile onLogout={handleLogout} />;
+        return <Profile />;
       default:
         return <Dashboard onNavigate={setActiveTab} />;
     }
