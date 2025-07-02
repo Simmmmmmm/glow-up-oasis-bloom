@@ -201,7 +201,7 @@ const Index = () => {
       case 'wellness':
         return <WellnessTips />;
       case 'profile':
-        return <Profile />;
+        return <Profile onLogout={handleLogout} />;
       default:
         return <Dashboard onNavigate={setActiveTab} />;
     }
@@ -214,14 +214,6 @@ const Index = () => {
         <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
           {renderContent()}
         </main>
-        
-        {/* Logout Button */}
-        <button
-          onClick={handleLogout}
-          className="fixed bottom-4 right-4 bg-slate-700 dark:bg-slate-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm hover:bg-slate-800 dark:hover:bg-slate-500 transition-colors opacity-70 hover:opacity-100 shadow-lg z-50"
-        >
-          Logout
-        </button>
       </div>
     </ThemeProvider>
   );

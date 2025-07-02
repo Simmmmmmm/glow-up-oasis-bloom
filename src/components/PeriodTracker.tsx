@@ -134,13 +134,13 @@ const PeriodTracker = () => {
   const getDayStyle = (dayType: string) => {
     switch (dayType) {
       case 'period':
-        return 'bg-red-200 text-red-800 border-red-300';
+        return 'bg-red-200 dark:bg-red-900/50 text-red-800 dark:text-red-300 border-red-300 dark:border-red-700';
       case 'predicted-period':
-        return 'bg-red-100 text-red-600 border-red-200 border-dashed';
+        return 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 border-dashed';
       case 'fertile':
-        return 'bg-green-200 text-green-800 border-green-300';
+        return 'bg-green-200 dark:bg-green-900/50 text-green-800 dark:text-green-300 border-green-300 dark:border-green-700';
       default:
-        return 'bg-gray-50 hover:bg-gray-100';
+        return 'bg-gray-50 dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 text-gray-900 dark:text-gray-100';
     }
   };
 
@@ -151,28 +151,28 @@ const PeriodTracker = () => {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Period Tracker</h2>
-        <p className="text-gray-600">Track your menstrual cycle and stay informed about your body</p>
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Period Tracker</h2>
+        <p className="text-gray-600 dark:text-gray-300">Track your menstrual cycle and stay informed about your body</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Calendar View */}
-        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-pink-100">
+        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-slate-700">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-800">Cycle Calendar</h3>
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Cycle Calendar</h3>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
               >
                 ←
               </button>
-              <span className="font-medium">
+              <span className="font-medium text-gray-800 dark:text-gray-100">
                 {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </span>
               <button
                 onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
               >
                 →
               </button>
@@ -181,7 +181,7 @@ const PeriodTracker = () => {
 
           <div className="grid grid-cols-7 gap-2 mb-4">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500 py-2">
+              <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
                 {day}
               </div>
             ))}
@@ -206,18 +206,18 @@ const PeriodTracker = () => {
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-100">
+          <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-100 dark:border-slate-600">
             <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-red-200 border-2 border-red-300"></div>
-              <span className="text-sm text-gray-600">Period</span>
+              <div className="w-4 h-4 rounded bg-red-200 dark:bg-red-900/50 border-2 border-red-300 dark:border-red-700"></div>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Period</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-red-100 border-2 border-red-200 border-dashed"></div>
-              <span className="text-sm text-gray-600">Predicted Period</span>
+              <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800 border-dashed"></div>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Predicted Period</span>
             </div>
             <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-green-200 border-2 border-green-300"></div>
-              <span className="text-sm text-gray-600">Fertile Window</span>
+              <div className="w-4 h-4 rounded bg-green-200 dark:bg-green-900/50 border-2 border-green-300 dark:border-green-700"></div>
+              <span className="text-sm text-gray-600 dark:text-gray-300">Fertile Window</span>
             </div>
           </div>
         </div>
@@ -225,28 +225,28 @@ const PeriodTracker = () => {
         {/* Tracking Info */}
         <div className="space-y-6">
           {/* Quick Stats */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-red-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Cycle Overview</h3>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-red-100 dark:border-slate-700">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Cycle Overview</h3>
             
             {nextPeriod && (
-              <div className="mb-4 p-4 bg-red-50 rounded-xl">
+              <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/30 rounded-xl">
                 <div className="flex items-center space-x-2 mb-2">
-                  <Calendar className="w-5 h-5 text-red-600" />
-                  <span className="font-medium text-red-800">Next Period</span>
+                  <Calendar className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  <span className="font-medium text-red-800 dark:text-red-300">Next Period</span>
                 </div>
-                <p className="text-red-700">
+                <p className="text-red-700 dark:text-red-300">
                   {nextPeriod.toLocaleDateString()} ({daysUntilNext} days)
                 </p>
               </div>
             )}
 
             {fertile.start && fertile.end && (
-              <div className="mb-4 p-4 bg-green-50 rounded-xl">
+              <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/30 rounded-xl">
                 <div className="flex items-center space-x-2 mb-2">
-                  <Heart className="w-5 h-5 text-green-600" />
-                  <span className="font-medium text-green-800">Fertile Window</span>
+                  <Heart className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <span className="font-medium text-green-800 dark:text-green-300">Fertile Window</span>
                 </div>
-                <p className="text-green-700 text-sm">
+                <p className="text-green-700 dark:text-green-300 text-sm">
                   {fertile.start.toLocaleDateString()} - {fertile.end.toLocaleDateString()}
                 </p>
               </div>
@@ -254,35 +254,35 @@ const PeriodTracker = () => {
 
             <div className="space-y-3">
               <div className="flex justify-between">
-                <span className="text-gray-600">Cycle Length:</span>
-                <span className="font-medium">{periodData.cycleLength} days</span>
+                <span className="text-gray-600 dark:text-gray-300">Cycle Length:</span>
+                <span className="font-medium text-gray-800 dark:text-gray-100">{periodData.cycleLength} days</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Period Length:</span>
-                <span className="font-medium">{periodData.periodLength} days</span>
+                <span className="text-gray-600 dark:text-gray-300">Period Length:</span>
+                <span className="font-medium text-gray-800 dark:text-gray-100">{periodData.periodLength} days</span>
               </div>
             </div>
           </div>
 
           {/* Log Period */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-pink-100">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Log Your Period</h3>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-slate-700">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Log Your Period</h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Last Period Start Date
                 </label>
                 <input
                   type="date"
                   value={periodData.lastPeriodDate}
                   onChange={(e) => savePeriodData({ ...periodData, lastPeriodDate: e.target.value })}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Cycle Length (days)
                 </label>
                 <input
@@ -291,12 +291,12 @@ const PeriodTracker = () => {
                   max="35"
                   value={periodData.cycleLength}
                   onChange={(e) => savePeriodData({ ...periodData, cycleLength: parseInt(e.target.value) })}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Period Length (days)
                 </label>
                 <input
@@ -305,32 +305,32 @@ const PeriodTracker = () => {
                   max="7"
                   value={periodData.periodLength}
                   onChange={(e) => savePeriodData({ ...periodData, periodLength: parseInt(e.target.value) })}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Notes (optional)
                 </label>
                 <textarea
                   value={periodData.notes}
                   onChange={(e) => savePeriodData({ ...periodData, notes: e.target.value })}
                   placeholder="Any symptoms, mood changes, etc..."
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent resize-none h-20"
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent resize-none h-20 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 ></textarea>
               </div>
             </div>
           </div>
 
           {/* Health Tips */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-purple-100">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-purple-100 dark:border-slate-700">
             <div className="flex items-center space-x-2 mb-4">
-              <Info className="w-5 h-5 text-purple-600" />
-              <h3 className="text-lg font-semibold text-gray-800">Cycle Tips</h3>
+              <Info className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Cycle Tips</h3>
             </div>
             
-            <div className="space-y-3 text-sm text-gray-700">
+            <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
               <p>🌸 Track your symptoms to understand your unique cycle patterns</p>
               <p>💧 Stay hydrated, especially during your period</p>
               <p>🧘‍♀️ Practice gentle yoga or stretching for cramps</p>

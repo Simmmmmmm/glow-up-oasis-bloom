@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, Plus, Clock, Flame, Target } from 'lucide-react';
 
@@ -23,12 +22,12 @@ const HabitPlanner = () => {
   const categories = ['All', 'Health', 'Beauty', 'Fitness', 'Mindfulness', 'Learning', 'Nutrition'];
   
   const categoryColors = {
-    'Health': 'bg-blue-100 text-blue-700',
-    'Beauty': 'bg-pink-100 text-pink-700',
-    'Fitness': 'bg-green-100 text-green-700',
-    'Mindfulness': 'bg-purple-100 text-purple-700',
-    'Learning': 'bg-yellow-100 text-yellow-700',
-    'Nutrition': 'bg-orange-100 text-orange-700'
+    'Health': 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+    'Beauty': 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
+    'Fitness': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+    'Mindfulness': 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+    'Learning': 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+    'Nutrition': 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300'
   };
 
   useEffect(() => {
@@ -46,7 +45,7 @@ const HabitPlanner = () => {
           streak: 7,
           completedToday: true,
           completedDates: [getTodayString()],
-          color: 'bg-blue-100 text-blue-700',
+          color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
           createdAt: new Date().toISOString()
         },
         {
@@ -56,7 +55,7 @@ const HabitPlanner = () => {
           streak: 12,
           completedToday: true,
           completedDates: [getTodayString()],
-          color: 'bg-pink-100 text-pink-700',
+          color: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
           createdAt: new Date().toISOString()
         },
         {
@@ -66,7 +65,7 @@ const HabitPlanner = () => {
           streak: 5,
           completedToday: false,
           completedDates: [],
-          color: 'bg-green-100 text-green-700',
+          color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
           createdAt: new Date().toISOString()
         }
       ];
@@ -94,7 +93,7 @@ const HabitPlanner = () => {
       streak: 0,
       completedToday: false,
       completedDates: [],
-      color: categoryColors[newHabitCategory as keyof typeof categoryColors] || 'bg-gray-100 text-gray-700',
+      color: categoryColors[newHabitCategory as keyof typeof categoryColors] || 'bg-gray-100 text-gray-700 dark:bg-gray-700/30 dark:text-gray-300',
       createdAt: new Date().toISOString()
     };
 
@@ -156,32 +155,32 @@ const HabitPlanner = () => {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Habit Planner</h2>
-        <p className="text-gray-600">Build positive habits and track your daily progress</p>
+        <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Habit Planner</h2>
+        <p className="text-gray-600 dark:text-gray-300">Build positive habits and track your daily progress</p>
       </div>
 
       {/* Progress Overview */}
-      <div className="bg-gradient-to-r from-mint-100 to-green-100 rounded-2xl p-6 mb-8 shadow-sm border border-mint-200">
+      <div className="bg-gradient-to-r from-mint-100 to-green-100 dark:from-green-900/30 dark:to-mint-900/30 rounded-2xl p-6 mb-8 shadow-sm border border-mint-200 dark:border-green-700/50">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-700">{completedCount}/{totalCount}</div>
-            <div className="text-sm text-green-600">Today's Habits</div>
+            <div className="text-3xl font-bold text-green-700 dark:text-green-300">{completedCount}/{totalCount}</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Today's Habits</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-700">{completionPercentage}%</div>
-            <div className="text-sm text-green-600">Completion Rate</div>
+            <div className="text-3xl font-bold text-green-700 dark:text-green-300">{completionPercentage}%</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Completion Rate</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-700">{totalStreak}</div>
-            <div className="text-sm text-green-600">Total Streaks</div>
+            <div className="text-3xl font-bold text-green-700 dark:text-green-300">{totalStreak}</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Total Streaks</div>
           </div>
           <div className="text-center">
-            <div className="text-3xl font-bold text-green-700">{longestStreak}</div>
-            <div className="text-sm text-green-600">Longest Streak</div>
+            <div className="text-3xl font-bold text-green-700 dark:text-green-300">{longestStreak}</div>
+            <div className="text-sm text-green-600 dark:text-green-400">Longest Streak</div>
           </div>
         </div>
         
-        <div className="w-full bg-green-200 rounded-full h-3 mt-4">
+        <div className="w-full bg-green-200 dark:bg-green-800/50 rounded-full h-3 mt-4">
           <div
             className="bg-gradient-to-r from-green-400 to-mint-400 h-3 rounded-full transition-all duration-500"
             style={{ width: `${completionPercentage}%` }}
@@ -192,8 +191,8 @@ const HabitPlanner = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         {/* Categories Filter */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-purple-100 mb-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Categories</h3>
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-purple-100 dark:border-slate-700 mb-6">
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Categories</h3>
             <div className="space-y-2">
               {categories.map((category) => (
                 <button
@@ -201,8 +200,8 @@ const HabitPlanner = () => {
                   onClick={() => setSelectedCategory(category)}
                   className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                     selectedCategory === category
-                      ? 'bg-purple-100 text-purple-700 font-medium'
-                      : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 font-medium'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   {category}
@@ -212,7 +211,7 @@ const HabitPlanner = () => {
           </div>
 
           {/* Add New Habit */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm border border-pink-100">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-slate-700">
             <button
               onClick={() => setShowAddForm(!showAddForm)}
               className="w-full flex items-center justify-center space-x-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white py-3 rounded-xl hover:from-pink-500 hover:to-purple-500 transition-all duration-200 font-medium"
@@ -228,12 +227,12 @@ const HabitPlanner = () => {
                   value={newHabit}
                   onChange={(e) => setNewHabit(e.target.value)}
                   placeholder="Enter new habit..."
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
                 />
                 <select
                   value={newHabitCategory}
                   onChange={(e) => setNewHabitCategory(e.target.value)}
-                  className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-pink-300 focus:border-transparent"
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
                 >
                   {categories.filter(cat => cat !== 'All').map(category => (
                     <option key={category} value={category}>{category}</option>
@@ -242,13 +241,13 @@ const HabitPlanner = () => {
                 <div className="flex space-x-2">
                   <button
                     onClick={addHabit}
-                    className="flex-1 bg-pink-100 text-pink-700 py-2 rounded-lg hover:bg-pink-200 transition-colors"
+                    className="flex-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 py-2 rounded-lg hover:bg-pink-200 dark:hover:bg-pink-900/50 transition-colors"
                   >
                     Save
                   </button>
                   <button
                     onClick={() => setShowAddForm(false)}
-                    className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                    className="flex-1 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors"
                   >
                     Cancel
                   </button>
@@ -260,24 +259,24 @@ const HabitPlanner = () => {
 
         {/* Habits List */}
         <div className="lg:col-span-3">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="p-6 border-b border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-800">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-gray-100 dark:border-slate-700">
+            <div className="p-6 border-b border-gray-100 dark:border-slate-700">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                 {selectedCategory === 'All' ? 'All Habits' : `${selectedCategory} Habits`}
-                <span className="text-sm font-normal text-gray-500 ml-2">
+                <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
                   ({filteredHabits.length} habits)
                 </span>
               </h3>
             </div>
 
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-gray-100 dark:divide-slate-700">
               {filteredHabits.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
+                <div className="p-8 text-center text-gray-500 dark:text-gray-400">
                   No habits in this category yet. Add your first habit!
                 </div>
               ) : (
                 filteredHabits.map((habit) => (
-                  <div key={habit.id} className="p-6 hover:bg-gray-50 transition-colors">
+                  <div key={habit.id} className="p-6 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <button
@@ -285,7 +284,7 @@ const HabitPlanner = () => {
                           className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                             habit.completedToday
                               ? 'bg-green-400 text-white shadow-sm'
-                              : 'border-2 border-gray-300 hover:border-green-400'
+                              : 'border-2 border-gray-300 dark:border-slate-600 hover:border-green-400 dark:hover:border-green-500 bg-white dark:bg-slate-700'
                           }`}
                         >
                           {habit.completedToday && <CheckCircle className="w-5 h-5" />}
@@ -293,7 +292,7 @@ const HabitPlanner = () => {
                         
                         <div>
                           <h4 className={`font-medium ${
-                            habit.completedToday ? 'text-gray-500 line-through' : 'text-gray-800'
+                            habit.completedToday ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-800 dark:text-gray-100'
                           }`}>
                             {habit.name}
                           </h4>
@@ -301,7 +300,7 @@ const HabitPlanner = () => {
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${habit.color}`}>
                               {habit.category}
                             </span>
-                            <div className="flex items-center space-x-1 text-sm text-gray-500">
+                            <div className="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400">
                               <Flame className="w-4 h-4 text-orange-500" />
                               <span>{habit.streak} day streak</span>
                             </div>
@@ -311,12 +310,12 @@ const HabitPlanner = () => {
 
                       <div className="flex items-center space-x-4">
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-gray-800">{habit.streak}</div>
-                          <div className="text-sm text-gray-500">days</div>
+                          <div className="text-2xl font-bold text-gray-800 dark:text-gray-100">{habit.streak}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">days</div>
                         </div>
                         <button
                           onClick={() => deleteHabit(habit.id)}
-                          className="text-red-400 hover:text-red-600 text-sm"
+                          className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-sm"
                         >
                           Delete
                         </button>
