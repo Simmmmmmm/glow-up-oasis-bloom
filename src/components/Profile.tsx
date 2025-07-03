@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, Settings, Bell, Heart, Target, LogOut } from 'lucide-react';
 import { supabaseService } from '../services/supabaseService';
@@ -67,15 +68,24 @@ const Profile = () => {
       ]);
       
       if (profileData) {
+        // Type-safe access to Json fields with proper type guards
+        const preferences = userData?.preferences && typeof userData.preferences === 'object' && userData.preferences !== null
+          ? userData.preferences as { notifications?: boolean }
+          : { notifications: true };
+        
+        const userGoals = userData?.profile && typeof userData.profile === 'object' && userData.profile !== null
+          ? (userData.profile as { goals?: string[] })?.goals || []
+          : [];
+
         setProfile({
           name: profileData.full_name || '',
           email: profileData.email,
           dateOfBirth: profileData.date_of_birth || '',
           preferences: {
-            receiveTips: userData?.preferences?.notifications || true,
-            notifications: userData?.preferences?.notifications || true,
+            receiveTips: preferences?.notifications || true,
+            notifications: preferences?.notifications || true,
           },
-          goals: userData?.profile?.goals || []
+          goals: userGoals
         });
       }
     } catch (error) {
@@ -99,11 +109,16 @@ const Profile = () => {
         habit.completed_dates?.includes(today)
       ).length;
 
+      // Type-safe access to goals
+      const userGoals = userData?.profile && typeof userData.profile === 'object' && userData.profile !== null
+        ? (userData.profile as { goals?: string[] })?.goals || []
+        : [];
+
       setUserStats({
         journalEntries: journalEntries.length,
         moodLogs: moodData.length,
         habitsCompleted: completedToday,
-        activeGoals: userData?.profile?.goals?.length || 0
+        activeGoals: userGoals.length
       });
     } catch (error) {
       console.error('Error loading user stats:', error);
@@ -125,13 +140,23 @@ const Profile = () => {
 
       // Update user data with goals and preferences
       const userData = await supabaseService.getUserData();
+      
+      // Type-safe spreading with proper type guards
+      const currentPreferences = userData?.preferences && typeof userData.preferences === 'object' && userData.preferences !== null
+        ? userData.preferences as Record<string, any>
+        : {};
+      
+      const currentProfile = userData?.profile && typeof userData.profile === 'object' && userData.profile !== null
+        ? userData.profile as Record<string, any>
+        : {};
+
       await supabaseService.updateUserData({
         preferences: {
-          ...userData?.preferences,
+          ...currentPreferences,
           notifications: updatedProfile.preferences.notifications
         },
         profile: {
-          ...userData?.profile,
+          ...currentProfile,
           goals: updatedProfile.goals
         }
       });
