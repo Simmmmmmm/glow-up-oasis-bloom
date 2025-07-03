@@ -1,12 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
-import { userDataService } from '../services/userDataService';
+import { supabaseService } from '../services/supabaseService';
+import { useAuth } from '../hooks/useAuth';
 
 const MoodTracker = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [userEmail, setUserEmail] = useState('');
   const [moodData, setMoodData] = useState<any>({});
   const [weeklyMoodStats, setWeeklyMoodStats] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   
   const moods = [
     { emoji: '😊', label: 'Happy', color: 'bg-yellow-200' },
@@ -18,45 +21,44 @@ const MoodTracker = () => {
   ];
 
   useEffect(() => {
-    const email = localStorage.getItem('glowup_userEmail');
-    if (email) {
-      setUserEmail(email);
-      const userData = userDataService.getUserData(email);
-      if (userData && userData.moodData) {
-        // Convert mood data array to calendar format
-        const moodCalendar: any = {};
-        userData.moodData.forEach((mood: any) => {
-          moodCalendar[mood.date] = {
-            emoji: mood.mood === 'Happy' ? '😊' : 
-                   mood.mood === 'Peaceful' ? '😌' :
-                   mood.mood === 'Sad' ? '😔' :
-                   mood.mood === 'Anxious' ? '😰' :
-                   mood.mood === 'Tired' ? '😴' : '😐',
-            color: mood.mood === 'Happy' ? 'bg-yellow-200' : 
-                   mood.mood === 'Peaceful' ? 'bg-green-200' :
-                   mood.mood === 'Sad' ? 'bg-blue-200' :
-                   mood.mood === 'Anxious' ? 'bg-red-200' :
-                   mood.mood === 'Tired' ? 'bg-purple-200' : 'bg-gray-200'
-          };
-        });
-        setMoodData(moodCalendar);
-        
-        // Generate weekly stats from actual user data
-        generateWeeklyStats(userData.moodData);
-      } else {
-        // For new users, show empty weekly stats
-        setWeeklyMoodStats([
-          { day: 'Mon', mood: '😐', count: 0 },
-          { day: 'Tue', mood: '😐', count: 0 },
-          { day: 'Wed', mood: '😐', count: 0 },
-          { day: 'Thu', mood: '😐', count: 0 },
-          { day: 'Fri', mood: '😐', count: 0 },
-          { day: 'Sat', mood: '😐', count: 0 },
-          { day: 'Sun', mood: '😐', count: 0 },
-        ]);
-      }
+    if (user) {
+      loadMoodData();
     }
-  }, []);
+  }, [user]);
+
+  const loadMoodData = async () => {
+    if (!user) return;
+    
+    try {
+      const moodEntries = await supabaseService.getMoodData();
+      
+      // Convert mood data array to calendar format
+      const moodCalendar: any = {};
+      moodEntries.forEach((mood: any) => {
+        const moodInfo = moods.find(m => m.label === mood.mood);
+        moodCalendar[mood.date] = {
+          emoji: moodInfo?.emoji || '😐',
+          color: moodInfo?.color || 'bg-gray-200'
+        };
+      });
+      setMoodData(moodCalendar);
+      
+      // Generate weekly stats from actual user data
+      generateWeeklyStats(moodEntries);
+    } catch (error) {
+      console.error('Error loading mood data:', error);
+      // Initialize empty weekly stats for new users
+      setWeeklyMoodStats([
+        { day: 'Mon', mood: '😐', count: 0 },
+        { day: 'Tue', mood: '😐', count: 0 },
+        { day: 'Wed', mood: '😐', count: 0 },
+        { day: 'Thu', mood: '😐', count: 0 },
+        { day: 'Fri', mood: '😐', count: 0 },
+        { day: 'Sat', mood: '😐', count: 0 },
+        { day: 'Sun', mood: '😐', count: 0 },
+      ]);
+    }
+  };
 
   const generateWeeklyStats = (moodDataArray: any[]) => {
     // Get the last 7 days
@@ -72,14 +74,11 @@ const MoodTracker = () => {
       
       // Find mood for this day
       const dayMood = moodDataArray.find((mood: any) => mood.date === dateStr);
+      const moodInfo = dayMood ? moods.find(m => m.label === dayMood.mood) : null;
       
       weekStats.push({
         day: dayName,
-        mood: dayMood ? (dayMood.mood === 'Happy' ? '😊' : 
-                        dayMood.mood === 'Peaceful' ? '😌' :
-                        dayMood.mood === 'Sad' ? '😔' :
-                        dayMood.mood === 'Anxious' ? '😰' :
-                        dayMood.mood === 'Tired' ? '😴' : '😐') : '😐',
+        mood: moodInfo?.emoji || '😐',
         count: dayMood ? dayMood.energy || 0 : 0
       });
     }
@@ -87,38 +86,37 @@ const MoodTracker = () => {
     setWeeklyMoodStats(weekStats);
   };
 
-  const saveMood = (moodLabel: string) => {
-    if (!userEmail) return;
+  const saveMood = async (moodLabel: string) => {
+    if (!user) return;
     
-    const userData = userDataService.getUserData(userEmail);
-    if (!userData) return;
+    setLoading(true);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const newMoodEntry = {
+        mood: moodLabel,
+        note: '',
+        energy: Math.floor(Math.random() * 5) + 1,
+        sleep: Math.floor(Math.random() * 5) + 1,
+        date: today
+      };
 
-    const today = new Date().toISOString().split('T')[0];
-    const newMoodEntry = {
-      date: today,
-      mood: moodLabel,
-      note: '',
-      energy: Math.floor(Math.random() * 5) + 1,
-      sleep: Math.floor(Math.random() * 5) + 1
-    };
-
-    // Remove existing mood for today
-    userData.moodData = userData.moodData.filter((mood: any) => mood.date !== today);
-    // Add new mood
-    userData.moodData.push(newMoodEntry);
-
-    userDataService.saveUserData(userEmail, userData);
-    
-    // Update local state
-    const newMoodData = { ...moodData };
-    const mood = moods.find(m => m.label === moodLabel);
-    if (mood) {
-      newMoodData[today] = { emoji: mood.emoji, color: mood.color };
-      setMoodData(newMoodData);
+      await supabaseService.createMoodEntry(newMoodEntry);
+      
+      // Update local state
+      const newMoodData = { ...moodData };
+      const mood = moods.find(m => m.label === moodLabel);
+      if (mood) {
+        newMoodData[today] = { emoji: mood.emoji, color: mood.color };
+        setMoodData(newMoodData);
+      }
+      
+      // Reload mood data to update weekly stats
+      loadMoodData();
+    } catch (error) {
+      console.error('Error saving mood:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    // Regenerate weekly stats
-    generateWeeklyStats(userData.moodData);
   };
 
   const getDaysInMonth = (date: Date) => {
@@ -260,7 +258,8 @@ const MoodTracker = () => {
                 <button
                   key={index}
                   onClick={() => saveMood(mood.label)}
-                  className="p-3 rounded-xl border border-gray-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-sm transition-all duration-200 text-center bg-white dark:bg-slate-700"
+                  disabled={loading}
+                  className="p-3 rounded-xl border border-gray-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 hover:shadow-sm transition-all duration-200 text-center bg-white dark:bg-slate-700 disabled:opacity-50"
                 >
                   <div className="text-2xl mb-1">{mood.emoji}</div>
                   <div className="text-xs font-medium text-gray-600 dark:text-gray-300">{mood.label}</div>

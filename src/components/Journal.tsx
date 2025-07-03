@@ -1,14 +1,16 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar, Search, Save, Tag } from 'lucide-react';
-import { userDataService } from '../services/userDataService';
+import { supabaseService } from '../services/supabaseService';
+import { useAuth } from '../hooks/useAuth';
 
 interface JournalEntry {
   id: string;
-  date: string;
-  mood: string;
   title: string;
   content: string;
+  mood: string;
   tags: string[];
+  created_at: string;
 }
 
 const Journal = () => {
@@ -19,7 +21,8 @@ const Journal = () => {
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showPrompts, setShowPrompts] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
   
   const moods = [
     { emoji: '😊', label: 'Happy', color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' },
@@ -49,41 +52,47 @@ const Journal = () => {
   ];
 
   useEffect(() => {
-    const email = localStorage.getItem('glowup_userEmail');
-    if (email) {
-      setUserEmail(email);
-      const userData = userDataService.getUserData(email);
-      if (userData && userData.journalEntries) {
-        setEntries(userData.journalEntries);
-      }
+    if (user) {
+      loadJournalEntries();
     }
-  }, []);
+  }, [user]);
 
-  const saveEntry = () => {
-    if (!entry.trim() || !selectedMood || !userEmail) return;
-
-    const newEntry: JournalEntry = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
-      mood: selectedMood,
-      title: entryTitle || `Journal Entry - ${new Date().toLocaleDateString()}`,
-      content: entry,
-      tags: selectedTags
-    };
-
-    const userData = userDataService.getUserData(userEmail);
-    if (!userData) return;
-
-    userData.journalEntries = [newEntry, ...userData.journalEntries];
-    userDataService.saveUserData(userEmail, userData);
+  const loadJournalEntries = async () => {
+    if (!user) return;
     
-    setEntries([newEntry, ...entries]);
+    try {
+      const journalEntries = await supabaseService.getJournalEntries();
+      setEntries(journalEntries);
+    } catch (error) {
+      console.error('Error loading journal entries:', error);
+    }
+  };
 
-    // Reset form
-    setEntry('');
-    setEntryTitle('');
-    setSelectedMood('');
-    setSelectedTags([]);
+  const saveEntry = async () => {
+    if (!entry.trim() || !selectedMood || !user) return;
+
+    setLoading(true);
+    try {
+      const newEntry = {
+        title: entryTitle || `Journal Entry - ${new Date().toLocaleDateString()}`,
+        content: entry,
+        mood: selectedMood,
+        tags: selectedTags
+      };
+
+      const savedEntry = await supabaseService.createJournalEntry(newEntry);
+      setEntries([savedEntry, ...entries]);
+
+      // Reset form
+      setEntry('');
+      setEntryTitle('');
+      setSelectedMood('');
+      setSelectedTags([]);
+    } catch (error) {
+      console.error('Error saving journal entry:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleTag = (tag: string) => {
@@ -97,7 +106,7 @@ const Journal = () => {
   const filteredEntries = entries.filter(entry => 
     entry.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
     entry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    entry.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+    entry.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const usePrompt = (prompt: string) => {
@@ -215,11 +224,11 @@ const Journal = () => {
           </div>
           <button
             onClick={saveEntry}
-            disabled={!entry.trim() || !selectedMood}
+            disabled={!entry.trim() || !selectedMood || loading}
             className="flex items-center space-x-2 bg-gradient-to-r from-pink-400 to-purple-400 text-white px-6 py-2 rounded-full hover:from-pink-500 hover:to-purple-500 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="w-4 h-4" />
-            <span>Save Entry</span>
+            <span>{loading ? 'Saving...' : 'Save Entry'}</span>
           </button>
         </div>
       </div>
@@ -257,7 +266,7 @@ const Journal = () => {
                       <span className="text-2xl">{mood?.emoji}</span>
                       <div>
                         <div className="text-lg font-medium text-gray-800 dark:text-gray-100">{journalEntry.title}</div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(journalEntry.date).toLocaleDateString()}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{new Date(journalEntry.created_at).toLocaleDateString()}</div>
                       </div>
                     </div>
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${mood?.color}`}>
@@ -265,12 +274,12 @@ const Journal = () => {
                     </span>
                   </div>
                   <p className="text-gray-700 dark:text-gray-300 mb-3 leading-relaxed">
-                    {journalEntry.content.length > 200 
+                    {journalEntry.content && journalEntry.content.length > 200 
                       ? journalEntry.content.substring(0, 200) + '...' 
                       : journalEntry.content}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {journalEntry.tags.map((tag) => (
+                    {journalEntry.tags?.map((tag) => (
                       <span key={tag} className="px-2 py-1 bg-gray-100 dark:bg-slate-600 text-gray-600 dark:text-gray-300 rounded-full text-xs">
                         #{tag}
                       </span>

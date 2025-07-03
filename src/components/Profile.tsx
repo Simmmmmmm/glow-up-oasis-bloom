@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, Settings, Bell, Heart, Target, LogOut } from 'lucide-react';
-import { userDataService } from '../services/userDataService';
+import { supabaseService } from '../services/supabaseService';
+import { useAuth } from '../hooks/useAuth';
 
 interface UserProfile {
   name: string;
@@ -28,13 +29,14 @@ const Profile = () => {
 
   const [newGoal, setNewGoal] = useState('');
   const [isEditing, setIsEditing] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
   const [userStats, setUserStats] = useState({
     journalEntries: 0,
     moodLogs: 0,
     habitsCompleted: 0,
     activeGoals: 0
   });
+  const [loading, setLoading] = useState(false);
+  const { user, signOut } = useAuth();
 
   const goalOptions = [
     'Drink 8 glasses of water daily',
@@ -50,80 +52,119 @@ const Profile = () => {
   ];
 
   useEffect(() => {
-    const email = localStorage.getItem('glowup_userEmail');
-    const name = localStorage.getItem('glowup_userName');
-    
-    if (email) {
-      setUserEmail(email);
-      const userData = userDataService.getUserData(email);
-      
-      if (userData) {
-        setProfile({
-          name: userData.name || name || '',
-          email: userData.email,
-          dateOfBirth: userData.profile?.dateOfBirth || '',
-          preferences: {
-            receiveTips: userData.preferences?.notifications || true,
-            notifications: userData.preferences?.notifications || true,
-          },
-          goals: userData.profile?.goals || []
-        });
+    if (user) {
+      loadUserProfile();
+      loadUserStats();
+    }
+  }, [user]);
 
-        // Calculate user stats
-        setUserStats({
-          journalEntries: userData.journalEntries?.length || 0,
-          moodLogs: userData.moodData?.length || 0,
-          habitsCompleted: userData.habits?.reduce((total: number, habit: any) => 
-            total + habit.completedDates.length, 0) || 0,
-          activeGoals: userData.profile?.goals?.length || 0
+  const loadUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const [profileData, userData] = await Promise.all([
+        supabaseService.getProfile(),
+        supabaseService.getUserData()
+      ]);
+      
+      if (profileData) {
+        setProfile({
+          name: profileData.full_name || '',
+          email: profileData.email,
+          dateOfBirth: profileData.date_of_birth || '',
+          preferences: {
+            receiveTips: userData?.preferences?.notifications || true,
+            notifications: userData?.preferences?.notifications || true,
+          },
+          goals: userData?.profile?.goals || []
         });
       }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
     }
-  }, []);
-
-  const saveProfile = (updatedProfile: UserProfile) => {
-    setProfile(updatedProfile);
-    
-    if (!userEmail) return;
-    
-    const userData = userDataService.getUserData(userEmail);
-    if (!userData) return;
-
-    // Update user data with profile changes
-    userData.name = updatedProfile.name;
-    userData.email = updatedProfile.email;
-    userData.profile.dateOfBirth = updatedProfile.dateOfBirth;
-    userData.profile.goals = updatedProfile.goals;
-    userData.preferences.notifications = updatedProfile.preferences.notifications;
-
-    userDataService.saveUserData(userEmail, userData);
-    
-    // Update localStorage for name
-    localStorage.setItem('glowup_userName', updatedProfile.name);
   };
 
-  const addGoal = (goal: string) => {
+  const loadUserStats = async () => {
+    if (!user) return;
+    
+    try {
+      const [journalEntries, habits, moodData, userData] = await Promise.all([
+        supabaseService.getJournalEntries(),
+        supabaseService.getHabits(),
+        supabaseService.getMoodData(),
+        supabaseService.getUserData()
+      ]);
+
+      const today = new Date().toISOString().split('T')[0];
+      const completedToday = habits.filter(habit => 
+        habit.completed_dates?.includes(today)
+      ).length;
+
+      setUserStats({
+        journalEntries: journalEntries.length,
+        moodLogs: moodData.length,
+        habitsCompleted: completedToday,
+        activeGoals: userData?.profile?.goals?.length || 0
+      });
+    } catch (error) {
+      console.error('Error loading user stats:', error);
+    }
+  };
+
+  const saveProfile = async (updatedProfile: UserProfile) => {
+    setProfile(updatedProfile);
+    
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      // Update profile data
+      await supabaseService.updateProfile({
+        full_name: updatedProfile.name,
+        date_of_birth: updatedProfile.dateOfBirth || null
+      });
+
+      // Update user data with goals and preferences
+      const userData = await supabaseService.getUserData();
+      await supabaseService.updateUserData({
+        preferences: {
+          ...userData?.preferences,
+          notifications: updatedProfile.preferences.notifications
+        },
+        profile: {
+          ...userData?.profile,
+          goals: updatedProfile.goals
+        }
+      });
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addGoal = async (goal: string) => {
     if (goal && !profile.goals.includes(goal)) {
       const updatedProfile = {
         ...profile,
         goals: [...profile.goals, goal]
       };
-      saveProfile(updatedProfile);
+      await saveProfile(updatedProfile);
       setNewGoal('');
       setUserStats(prev => ({ ...prev, activeGoals: prev.activeGoals + 1 }));
     }
   };
 
-  const removeGoal = (goalToRemove: string) => {
+  const removeGoal = async (goalToRemove: string) => {
     const updatedProfile = {
       ...profile,
       goals: profile.goals.filter(goal => goal !== goalToRemove)
     };
-    saveProfile(updatedProfile);
+    await saveProfile(updatedProfile);
     setUserStats(prev => ({ ...prev, activeGoals: Math.max(0, prev.activeGoals - 1) }));
   };
 
-  const updatePreference = (key: keyof UserProfile['preferences'], value: boolean) => {
+  const updatePreference = async (key: keyof UserProfile['preferences'], value: boolean) => {
     const updatedProfile = {
       ...profile,
       preferences: {
@@ -131,23 +172,20 @@ const Profile = () => {
         [key]: value
       }
     };
-    saveProfile(updatedProfile);
+    await saveProfile(updatedProfile);
   };
 
-  const handleSaveBasicInfo = () => {
-    saveProfile(profile);
+  const handleSaveBasicInfo = async () => {
+    await saveProfile(profile);
     setIsEditing(false);
   };
 
-  const handleLogout = () => {
-    // Clear all user data from localStorage
-    localStorage.removeItem('glowup_userEmail');
-    localStorage.removeItem('glowup_userName');
-    localStorage.removeItem('glowup_isLoggedIn');
-    localStorage.removeItem('glowup_onboardingComplete');
-    
-    // Reload the page to reset the app state
-    window.location.reload();
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
   };
 
   return (
@@ -171,9 +209,10 @@ const Profile = () => {
               </div>
               <button
                 onClick={() => isEditing ? handleSaveBasicInfo() : setIsEditing(true)}
-                className="px-4 py-2 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-lg hover:bg-pink-200 dark:hover:bg-pink-900/50 transition-colors text-sm sm:text-base"
+                disabled={loading}
+                className="px-4 py-2 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-lg hover:bg-pink-200 dark:hover:bg-pink-900/50 transition-colors text-sm sm:text-base disabled:opacity-50"
               >
-                {isEditing ? 'Save' : 'Edit'}
+                {loading ? 'Saving...' : isEditing ? 'Save' : 'Edit'}
               </button>
             </div>
 
@@ -195,9 +234,8 @@ const Profile = () => {
                 <input
                   type="email"
                   value={profile.email}
-                  onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                  disabled={!isEditing}
-                  className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-400 focus:border-transparent disabled:bg-gray-50 dark:disabled:bg-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  disabled={true}
+                  className="w-full p-3 border border-gray-200 dark:border-gray-600 rounded-lg disabled:bg-gray-50 dark:disabled:bg-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   placeholder="your.email@example.com"
                 />
               </div>
@@ -238,7 +276,7 @@ const Profile = () => {
                 </select>
                 <button
                   onClick={() => addGoal(newGoal)}
-                  disabled={!newGoal}
+                  disabled={!newGoal || loading}
                   className="px-4 sm:px-6 py-3 bg-gradient-to-r from-purple-400 to-pink-400 text-white rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   Add Goal

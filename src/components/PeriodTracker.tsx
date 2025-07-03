@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Heart, AlertCircle, Info } from 'lucide-react';
-import { userDataService } from '../services/userDataService';
+import { supabaseService } from '../services/supabaseService';
+import { useAuth } from '../hooks/useAuth';
 
 interface PeriodData {
   lastPeriodDate: string;
@@ -18,52 +19,53 @@ const PeriodTracker = () => {
   });
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [userEmail, setUserEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    const email = localStorage.getItem('glowup_userEmail');
-    if (email) {
-      setUserEmail(email);
-      const userData = userDataService.getUserData(email);
-      if (userData && userData.periodData) {
-        // Extract period data from user data structure
-        const cycles = userData.periodData.cycles;
-        if (cycles && cycles.length > 0) {
-          const lastCycle = cycles[cycles.length - 1];
-          setPeriodData({
-            lastPeriodDate: lastCycle.startDate,
-            cycleLength: 28,
-            periodLength: 5,
-            notes: lastCycle.symptoms.join(', ')
-          });
-        }
-      }
+    if (user) {
+      loadPeriodData();
     }
-  }, []);
+  }, [user]);
 
-  const savePeriodData = (data: PeriodData) => {
+  const loadPeriodData = async () => {
+    if (!user) return;
+    
+    try {
+      const periods = await supabaseService.getPeriodData();
+      if (periods && periods.length > 0) {
+        const lastPeriod = periods[periods.length - 1];
+        setPeriodData({
+          lastPeriodDate: lastPeriod.start_date,
+          cycleLength: 28,
+          periodLength: 5,
+          notes: lastPeriod.symptoms?.join(', ') || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error loading period data:', error);
+    }
+  };
+
+  const savePeriodData = async (data: PeriodData) => {
     setPeriodData(data);
     
-    if (!userEmail) return;
+    if (!user || !data.lastPeriodDate) return;
     
-    const userData = userDataService.getUserData(userEmail);
-    if (!userData) return;
-
-    // Update period data in user data structure
-    if (data.lastPeriodDate) {
-      const newCycle = {
-        startDate: data.lastPeriodDate,
-        endDate: undefined,
+    setLoading(true);
+    try {
+      const newPeriod = {
+        start_date: data.lastPeriodDate,
+        end_date: null,
         symptoms: data.notes ? data.notes.split(', ') : [],
         flow: 'normal'
       };
       
-      userData.periodData.cycles = userData.periodData.cycles.filter(
-        (cycle: any) => cycle.startDate !== data.lastPeriodDate
-      );
-      userData.periodData.cycles.push(newCycle);
-      
-      userDataService.saveUserData(userEmail, userData);
+      await supabaseService.createPeriodEntry(newPeriod);
+    } catch (error) {
+      console.error('Error saving period data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 

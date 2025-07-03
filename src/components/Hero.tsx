@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Heart, Calendar, BookOpen, Target, TrendingUp } from 'lucide-react';
-import { userDataService } from '../services/userDataService';
+import { supabaseService } from '../services/supabaseService';
+import { useAuth } from '../hooks/useAuth';
 
 const Hero = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -12,24 +13,59 @@ const Hero = () => {
     streakDays: 0,
     moodScore: 'N/A'
   });
+  const { user } = useAuth();
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     
-    // Get user info from localStorage
-    const name = localStorage.getItem('userName') || 'Beautiful';
-    const userEmail = localStorage.getItem('userEmail');
-    
-    setUserName(name);
-    
-    // Get user-specific stats
-    if (userEmail) {
-      const stats = userDataService.getUserStats(userEmail);
-      setUserStats(stats);
+    if (user) {
+      loadUserData();
     }
     
     return () => clearInterval(timer);
-  }, []);
+  }, [user]);
+
+  const loadUserData = async () => {
+    if (!user) return;
+    
+    try {
+      // Get profile data
+      const profile = await supabaseService.getProfile();
+      setUserName(profile?.full_name || 'Beautiful');
+
+      // Get user stats
+      const [journalEntries, habits, moodData] = await Promise.all([
+        supabaseService.getJournalEntries(),
+        supabaseService.getHabits(),
+        supabaseService.getMoodData()
+      ]);
+
+      const totalHabits = habits.length;
+      const today = new Date().toISOString().split('T')[0];
+      const completedToday = habits.filter(habit => 
+        habit.completed_dates?.includes(today)
+      ).length;
+
+      const maxStreak = habits.reduce((max, habit) => 
+        Math.max(max, habit.streak || 0), 0
+      );
+
+      // Calculate average mood score
+      const recentMoods = moodData.slice(0, 7); // Last 7 entries
+      const avgMoodScore = recentMoods.length > 0 
+        ? Math.round(recentMoods.reduce((sum, mood) => sum + (mood.energy || 5), 0) / recentMoods.length)
+        : 'N/A';
+
+      setUserStats({
+        journalEntries: journalEntries.length,
+        habitsCompleted: `${completedToday}/${totalHabits}`,
+        streakDays: maxStreak,
+        moodScore: avgMoodScore
+      });
+    } catch (error) {
+      console.error('Error loading user data:', error);
+    }
+  };
 
   const getGreeting = () => {
     const hour = currentTime.getHours();

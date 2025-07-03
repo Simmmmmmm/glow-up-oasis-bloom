@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, Book, CheckCircle, Sparkles } from 'lucide-react';
-import { userDataService } from '../services/userDataService';
+import { supabaseService } from '../services/supabaseService';
+import { useAuth } from '../hooks/useAuth';
 
 interface DashboardProps {
   onNavigate?: (tab: string) => void;
@@ -9,18 +9,24 @@ interface DashboardProps {
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
   const [userHabits, setUserHabits] = useState<any[]>([]);
-  const [userEmail, setUserEmail] = useState('');
+  const { user } = useAuth();
 
   useEffect(() => {
-    const email = localStorage.getItem('glowup_userEmail');
-    if (email) {
-      setUserEmail(email);
-      const userData = userDataService.getUserData(email);
-      if (userData) {
-        setUserHabits(userData.habits);
-      }
+    if (user) {
+      loadUserHabits();
     }
-  }, []);
+  }, [user]);
+
+  const loadUserHabits = async () => {
+    if (!user) return;
+    
+    try {
+      const habits = await supabaseService.getHabits();
+      setUserHabits(habits);
+    } catch (error) {
+      console.error('Error loading habits:', error);
+    }
+  };
 
   const todaysDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -31,29 +37,36 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
 
   const today = new Date().toISOString().split('T')[0];
 
-  const toggleHabitCompletion = (habitId: string) => {
-    if (!userEmail) return;
+  const toggleHabitCompletion = async (habitId: string) => {
+    if (!user) return;
 
-    const userData = userDataService.getUserData(userEmail);
-    if (!userData) return;
+    try {
+      const habit = userHabits.find(h => h.id === habitId);
+      if (!habit) return;
 
-    const habitIndex = userData.habits.findIndex(h => h.id === habitId);
-    if (habitIndex === -1) return;
+      const isCompleted = habit.completed_dates?.includes(today) || false;
+      const updatedCompletedDates = isCompleted
+        ? habit.completed_dates.filter((date: string) => date !== today)
+        : [...(habit.completed_dates || []), today];
 
-    const habit = userData.habits[habitIndex];
-    const isCompleted = habit.completedDates.includes(today);
+      const updatedStreak = isCompleted 
+        ? Math.max(0, (habit.streak || 0) - 1)
+        : (habit.streak || 0) + 1;
 
-    if (isCompleted) {
-      habit.completedDates = habit.completedDates.filter(date => date !== today);
-      habit.streak = Math.max(0, habit.streak - 1);
-    } else {
-      habit.completedDates.push(today);
-      habit.streak += 1;
+      await supabaseService.updateHabit(habitId, {
+        completed_dates: updatedCompletedDates,
+        streak: updatedStreak
+      });
+
+      // Update local state
+      setUserHabits(prev => prev.map(h => 
+        h.id === habitId 
+          ? { ...h, completed_dates: updatedCompletedDates, streak: updatedStreak }
+          : h
+      ));
+    } catch (error) {
+      console.error('Error updating habit:', error);
     }
-
-    userData.habits[habitIndex] = habit;
-    userDataService.saveUserData(userEmail, userData);
-    setUserHabits([...userData.habits]);
   };
 
   const dailyTips = [
@@ -155,7 +168,7 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
         </div>
         <div className="space-y-3">
           {userHabits.slice(0, 3).map((habit) => {
-            const isCompleted = habit.completedDates.includes(today);
+            const isCompleted = habit.completed_dates?.includes(today) || false;
             return (
               <div key={habit.id} className="flex items-center space-x-3">
                 <button
