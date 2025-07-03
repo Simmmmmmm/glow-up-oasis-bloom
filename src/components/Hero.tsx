@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Heart, Calendar, BookOpen, Target, TrendingUp } from 'lucide-react';
 import { supabaseService } from '../services/supabaseService';
@@ -53,7 +52,7 @@ const Hero = () => {
       // Calculate average mood score
       const recentMoods = moodData.slice(0, 7); // Last 7 entries
       const avgMoodScore = recentMoods.length > 0 
-        ? Math.round(recentMoods.reduce((sum, mood) => sum + (mood.energy || 5), 0) / recentMoods.length)
+        ? Math.round(recentMoods.reduce((sum, mood) => sum + (mood.energy || 5), 0) / recentMoods.length).toString()
         : 'N/A';
 
       setUserStats({
@@ -99,7 +98,7 @@ const Hero = () => {
     { icon: BookOpen, label: 'Journal Entries', value: userStats.journalEntries.toString(), color: 'from-pink-400 to-pink-500' },
     { icon: Target, label: 'Habits Completed', value: userStats.habitsCompleted, color: 'from-purple-400 to-purple-500' },
     { icon: Calendar, label: 'Streak Days', value: userStats.streakDays.toString(), color: 'from-mint-400 to-mint-500' },
-    { icon: TrendingUp, label: 'Mood Score', value: userStats.moodScore.toString(), color: 'from-indigo-400 to-indigo-500' },
+    { icon: TrendingUp, label: 'Mood Score', value: userStats.moodScore, color: 'from-indigo-400 to-indigo-500' },
   ];
 
   return (

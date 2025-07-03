@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, Search, Save, Tag } from 'lucide-react';
 import { supabaseService } from '../services/supabaseService';

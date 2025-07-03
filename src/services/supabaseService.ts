@@ -1,119 +1,160 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// User Data Service
-export const userDataService = {
-  async getUserData(userId: string) {
+export const supabaseService = {
+  // Profile operations
+  async getProfile() {
     const { data, error } = await supabase
-      .from('user_data')
+      .from('profiles')
       .select('*')
-      .eq('user_id', userId)
       .single();
     
-    if (error) {
-      console.error('Error fetching user data:', error);
-      return null;
-    }
+    if (error) throw error;
     return data;
   },
 
-  async updateUserData(userId: string, updates: any) {
-    const { error } = await supabase
+  async updateProfile(updates: any) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // User data operations
+  async getUserData() {
+    const { data, error } = await supabase
+      .from('user_data')
+      .select('*')
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  async updateUserData(updates: any) {
+    const { data, error } = await supabase
       .from('user_data')
       .update(updates)
-      .eq('user_id', userId);
+      .select()
+      .single();
     
-    if (error) {
-      console.error('Error updating user data:', error);
-      return false;
-    }
-    return true;
+    if (error) throw error;
+    return data;
   },
 
-  async createDefaultHabits(userId: string) {
-    const defaultHabits = [
-      {
-        user_id: userId,
-        name: 'Drink 8 glasses of water',
-        category: 'Health',
-        frequency: 'daily',
-        completed_dates: [],
-        streak: 0,
-      },
-      {
-        user_id: userId,
-        name: 'Morning skincare routine',
-        category: 'Self-care',
-        frequency: 'daily',
-        completed_dates: [],
-        streak: 0,
-      },
-      {
-        user_id: userId,
-        name: 'Take a 10-minute walk',
-        category: 'Fitness',
-        frequency: 'daily',
-        completed_dates: [],
-        streak: 0,
-      },
-      {
-        user_id: userId,
-        name: 'Practice gratitude',
-        category: 'Mental Health',
-        frequency: 'daily',
-        completed_dates: [],
-        streak: 0,
-      },
-    ];
-
-    const { error } = await supabase
-      .from('habits')
-      .insert(defaultHabits);
-    
-    if (error) {
-      console.error('Error creating default habits:', error);
-    }
-  },
-
-  async getUserStats(userId: string) {
-    // Get journal entries count
-    const { count: journalCount } = await supabase
+  // Journal operations
+  async getJournalEntries() {
+    const { data, error } = await supabase
       .from('journal_entries')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId);
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
 
-    // Get habits data
-    const { data: habits } = await supabase
+  async createJournalEntry(entry: any) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('journal_entries')
+      .insert([{ ...entry, user_id: user.id }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Habits operations
+  async getHabits() {
+    const { data, error } = await supabase
       .from('habits')
       .select('*')
-      .eq('user_id', userId);
+      .order('created_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
 
-    // Get today's completed habits
-    const today = new Date().toISOString().split('T')[0];
-    const completedHabitsToday = habits?.filter(habit => 
-      habit.completed_dates?.includes(today)
-    ).length || 0;
+  async createHabit(habit: any) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
 
-    const totalHabits = habits?.length || 0;
-    const maxStreak = Math.max(...(habits?.map(h => h.streak) || [0]), 0);
+    const { data, error } = await supabase
+      .from('habits')
+      .insert([{ ...habit, user_id: user.id }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
 
-    // Get recent mood data
-    const { data: recentMoods } = await supabase
+  async updateHabit(id: string, updates: any) {
+    const { data, error } = await supabase
+      .from('habits')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Mood data operations
+  async getMoodData() {
+    const { data, error } = await supabase
       .from('mood_data')
-      .select('energy')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(7);
+      .select('*')
+      .order('date', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
 
-    const avgMood = recentMoods && recentMoods.length > 0 
-      ? (recentMoods.reduce((sum, mood) => sum + (mood.energy || 0), 0) / recentMoods.length).toFixed(1)
-      : 'N/A';
+  async createMoodEntry(mood: any) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
 
-    return {
-      journalEntries: journalCount || 0,
-      habitsCompleted: `${completedHabitsToday}/${totalHabits}`,
-      streakDays: maxStreak,
-      moodScore: avgMood
-    };
+    const { data, error } = await supabase
+      .from('mood_data')
+      .insert([{ ...mood, user_id: user.id }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
+  },
+
+  // Period data operations
+  async getPeriodData() {
+    const { data, error } = await supabase
+      .from('period_data')
+      .select('*')
+      .order('start_date', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  },
+
+  async createPeriodEntry(period: any) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const { data, error } = await supabase
+      .from('period_data')
+      .insert([{ ...period, user_id: user.id }])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data;
   }
 };
