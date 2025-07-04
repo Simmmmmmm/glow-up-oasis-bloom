@@ -1,3 +1,4 @@
+
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,13 +66,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           toast({
             title: "Welcome back!",
             description: "You've successfully signed in.",
-          });
-        }
-
-        if (event === 'SIGNED_UP') {
-          toast({
-            title: "Account created successfully!",
-            description: "Please check your email to verify your account before signing in.",
           });
         }
       }
