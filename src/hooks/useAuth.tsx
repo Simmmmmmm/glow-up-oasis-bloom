@@ -1,4 +1,3 @@
-
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,6 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state change:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -65,6 +65,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           toast({
             title: "Welcome back!",
             description: "You've successfully signed in.",
+          });
+        }
+
+        if (event === 'SIGNED_UP') {
+          toast({
+            title: "Account created successfully!",
+            description: "Please check your email to verify your account before signing in.",
           });
         }
       }
@@ -85,34 +92,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [toast]);
 
   const signUp = async (email: string, password: string, fullName?: string, dateOfBirth?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName,
-          date_of_birth: dateOfBirth,
+    try {
+      // Use the current window location for redirect
+      const redirectUrl = window.location.origin;
+      
+      console.log('Signing up with redirect URL:', redirectUrl);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName,
+            date_of_birth: dateOfBirth,
+          }
         }
-      }
-    });
+      });
 
-    if (error) {
+      if (error) {
+        console.error('Signup error:', error);
+        toast({
+          variant: "destructive",
+          title: "Sign up failed",
+          description: error.message,
+        });
+        return { error };
+      }
+
+      // Check if user needs email confirmation
+      if (data.user && !data.session) {
+        toast({
+          title: "Check your email!",
+          description: "We've sent you a confirmation link. Please check your email (including spam folder) and click the link to verify your account.",
+        });
+      } else if (data.session) {
+        toast({
+          title: "Account created!",
+          description: "Your account has been created successfully.",
+        });
+      }
+
+      return { error: null };
+    } catch (err) {
+      console.error('Unexpected signup error:', err);
+      const error = err as Error;
       toast({
         variant: "destructive",
         title: "Sign up failed",
-        description: error.message,
+        description: error.message || "An unexpected error occurred",
       });
-    } else {
-      toast({
-        title: "Account created!",
-        description: "Please check your email to verify your account.",
-      });
+      return { error };
     }
-
-    return { error };
   };
 
   const signIn = async (email: string, password: string) => {
