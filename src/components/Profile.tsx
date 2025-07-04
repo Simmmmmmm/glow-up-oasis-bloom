@@ -30,14 +30,14 @@ const Profile = () => {
     activeGoals: 0
   });
   const [loading, setLoading] = useState(false);
-  const { user, signOut } = useAuth();
+  const { user, signOut, userProfile, refreshProfile } = useAuth();
 
   useEffect(() => {
     if (user) {
       loadUserProfileData();
       loadUserStatsData();
     }
-  }, [user]);
+  }, [user, userProfile]);
 
   const loadUserProfileData = async () => {
     const profileData = await loadUserProfile();
@@ -57,6 +57,8 @@ const Profile = () => {
     setLoading(true);
     try {
       await saveProfile(profile);
+      // Refresh the auth profile to sync changes across the app
+      await refreshProfile();
     } catch (error) {
       console.error('Error saving profile:', error);
     } finally {

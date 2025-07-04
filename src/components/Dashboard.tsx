@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Calendar, Book, CheckCircle, Sparkles } from 'lucide-react';
 import { supabaseService } from '../services/supabaseService';
@@ -9,7 +10,7 @@ interface DashboardProps {
 
 const Dashboard = ({ onNavigate }: DashboardProps) => {
   const [userHabits, setUserHabits] = useState<any[]>([]);
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -26,6 +27,16 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
     } catch (error) {
       console.error('Error loading habits:', error);
     }
+  };
+
+  const getUserDisplayName = () => {
+    if (userProfile?.full_name) {
+      return userProfile.full_name.split(' ')[0]; // Get first name
+    }
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name.split(' ')[0];
+    }
+    return 'there';
   };
 
   const todaysDate = new Date().toLocaleDateString('en-US', {
@@ -70,11 +81,11 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
   };
 
   const dailyTips = [
-    "Remember to drink plenty of water today! Staying hydrated helps your skin glow and keeps your energy levels up. 💧",
-    "Take 5 deep breaths right now. Mindful breathing can instantly reduce stress and improve focus. 🧘‍♀️",
-    "Stand up and stretch! Your body will thank you for the movement break. 🤸‍♀️",
-    "Practice gratitude by writing down 3 things you're thankful for today. ✨",
-    "Get some sunlight! Even 10 minutes outside can boost your mood and vitamin D levels. ☀️"
+    `Hello ${getUserDisplayName()}! Remember to drink plenty of water today! Staying hydrated helps your skin glow and keeps your energy levels up. 💧`,
+    `Hi ${getUserDisplayName()}! Take 5 deep breaths right now. Mindful breathing can instantly reduce stress and improve focus. 🧘‍♀️`,
+    `Good day ${getUserDisplayName()}! Stand up and stretch! Your body will thank you for the movement break. 🤸‍♀️`,
+    `Hey ${getUserDisplayName()}! Practice gratitude by writing down 3 things you're thankful for today. ✨`,
+    `Hello ${getUserDisplayName()}! Get some sunlight! Even 10 minutes outside can boost your mood and vitamin D levels. ☀️`
   ];
 
   const dailyTip = dailyTips[Math.floor(Math.random() * dailyTips.length)];
@@ -106,7 +117,9 @@ const Dashboard = ({ onNavigate }: DashboardProps) => {
           </div>
           <h3 className="text-base sm:text-lg font-semibold text-gray-800 dark:text-white">Quick Journal</h3>
         </div>
-        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-3 sm:mb-4">How are you feeling today?</p>
+        <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mb-3 sm:mb-4">
+          How are you feeling today, {getUserDisplayName()}?
+        </p>
         <div className="flex space-x-1 sm:space-x-2 mb-3 sm:mb-4 overflow-x-auto">
           {['😊', '😌', '😐', '😔', '😴'].map((emoji, index) => (
             <button

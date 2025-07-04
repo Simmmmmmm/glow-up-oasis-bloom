@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Heart, AlertCircle, Info } from 'lucide-react';
 import { supabaseService } from '../services/supabaseService';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../hooks/use-toast';
 
 interface PeriodData {
   lastPeriodDate: string;
@@ -20,7 +21,9 @@ const PeriodTracker = () => {
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [loading, setLoading] = useState(false);
+  const [existingPeriods, setExistingPeriods] = useState<any[]>([]);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
@@ -31,8 +34,11 @@ const PeriodTracker = () => {
   const loadPeriodData = async () => {
     if (!user) return;
     
+    setLoading(true);
     try {
       const periods = await supabaseService.getPeriodData();
+      setExistingPeriods(periods);
+      
       if (periods && periods.length > 0) {
         const lastPeriod = periods[periods.length - 1];
         setPeriodData({
@@ -44,12 +50,17 @@ const PeriodTracker = () => {
       }
     } catch (error) {
       console.error('Error loading period data:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load period data. Please try again.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const savePeriodData = async (data: PeriodData) => {
-    setPeriodData(data);
-    
     if (!user || !data.lastPeriodDate) return;
     
     setLoading(true);
@@ -57,15 +68,38 @@ const PeriodTracker = () => {
       const newPeriod = {
         start_date: data.lastPeriodDate,
         end_date: null,
-        symptoms: data.notes ? data.notes.split(', ') : [],
+        symptoms: data.notes ? data.notes.split(', ').filter(s => s.trim()) : [],
         flow: 'normal'
       };
       
       await supabaseService.createPeriodEntry(newPeriod);
+      
+      // Reload data to get updated periods
+      await loadPeriodData();
+      
+      toast({
+        title: "Success",
+        description: "Period data saved successfully!",
+      });
     } catch (error) {
       console.error('Error saving period data:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save period data. Please try again.",
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleInputChange = (field: keyof PeriodData, value: string | number) => {
+    const updatedData = { ...periodData, [field]: value };
+    setPeriodData(updatedData);
+    
+    // Auto-save when user changes data
+    if (field === 'lastPeriodDate' && value) {
+      savePeriodData(updatedData);
     }
   };
 
@@ -278,8 +312,9 @@ const PeriodTracker = () => {
                 <input
                   type="date"
                   value={periodData.lastPeriodDate}
-                  onChange={(e) => savePeriodData({ ...periodData, lastPeriodDate: e.target.value })}
-                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+                  onChange={(e) => handleInputChange('lastPeriodDate', e.target.value)}
+                  disabled={loading}
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
                 />
               </div>
 
@@ -292,8 +327,9 @@ const PeriodTracker = () => {
                   min="21"
                   max="35"
                   value={periodData.cycleLength}
-                  onChange={(e) => savePeriodData({ ...periodData, cycleLength: parseInt(e.target.value) })}
-                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+                  onChange={(e) => handleInputChange('cycleLength', parseInt(e.target.value))}
+                  disabled={loading}
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
                 />
               </div>
 
@@ -306,22 +342,31 @@ const PeriodTracker = () => {
                   min="3"
                   max="7"
                   value={periodData.periodLength}
-                  onChange={(e) => savePeriodData({ ...periodData, periodLength: parseInt(e.target.value) })}
-                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+                  onChange={(e) => handleInputChange('periodLength', parseInt(e.target.value))}
+                  disabled={loading}
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Notes (optional)
+                  Notes & Symptoms
                 </label>
                 <textarea
                   value={periodData.notes}
-                  onChange={(e) => savePeriodData({ ...periodData, notes: e.target.value })}
+                  onChange={(e) => handleInputChange('notes', e.target.value)}
+                  onBlur={() => savePeriodData(periodData)}
                   placeholder="Any symptoms, mood changes, etc..."
-                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent resize-none h-20 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+                  disabled={loading}
+                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent resize-none h-20 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50"
                 ></textarea>
               </div>
+
+              {loading && (
+                <div className="text-center py-2">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Saving...</span>
+                </div>
+              )}
             </div>
           </div>
 

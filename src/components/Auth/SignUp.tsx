@@ -49,13 +49,18 @@ const SignUp = ({ onSwitchToSignIn }: SignUpProps) => {
     e.preventDefault();
     const newErrors = [];
 
-    if (!formData.name.trim()) newErrors.push('Name is required');
+    // Validate required fields
+    if (!formData.name.trim()) newErrors.push('Full name is required');
     if (!formData.email.trim()) newErrors.push('Email is required');
+    if (!dateOfBirth) newErrors.push('Date of birth is required');
     if (!formData.agreeToTerms) newErrors.push('You must agree to the terms');
+    
+    // Validate passwords
     if (formData.password !== formData.confirmPassword) {
       newErrors.push('Passwords do not match');
     }
     
+    // Validate date of birth
     if (dateOfBirth && !validateDateOfBirth(dateOfBirth)) {
       newErrors.push('You must be at least 13 years old and born after 1900');
     }
@@ -71,12 +76,17 @@ const SignUp = ({ onSwitchToSignIn }: SignUpProps) => {
     setIsLoading(true);
     setErrors([]);
     
-    await signUp(
+    const { error } = await signUp(
       formData.email, 
       formData.password, 
       formData.name,
       dateOfBirth ? format(dateOfBirth, 'yyyy-MM-dd') : undefined
     );
+    
+    if (error) {
+      setErrors([error.message]);
+    }
+    
     setIsLoading(false);
   };
 
@@ -100,7 +110,7 @@ const SignUp = ({ onSwitchToSignIn }: SignUpProps) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-            Full Name
+            Full Name *
           </label>
           <input
             type="text"
@@ -114,7 +124,7 @@ const SignUp = ({ onSwitchToSignIn }: SignUpProps) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-            Email Address
+            Email Address *
           </label>
           <input
             type="email"
@@ -128,7 +138,7 @@ const SignUp = ({ onSwitchToSignIn }: SignUpProps) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-            Date of Birth (Optional)
+            Date of Birth *
           </label>
           <Popover>
             <PopoverTrigger asChild>
@@ -141,7 +151,7 @@ const SignUp = ({ onSwitchToSignIn }: SignUpProps) => {
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateOfBirth ? format(dateOfBirth, "PPP") : <span>Pick your date of birth</span>}
+                {dateOfBirth ? format(dateOfBirth, "PPP") : <span>Select your date of birth</span>}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -167,7 +177,7 @@ const SignUp = ({ onSwitchToSignIn }: SignUpProps) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-            Password
+            Password *
           </label>
           <div className="relative">
             <input
@@ -205,7 +215,7 @@ const SignUp = ({ onSwitchToSignIn }: SignUpProps) => {
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-            Confirm Password
+            Confirm Password *
           </label>
           <div className="relative">
             <input
