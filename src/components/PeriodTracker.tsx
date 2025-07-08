@@ -246,8 +246,7 @@ const PeriodTracker = () => {
 
     setLoading(true);
     try {
-      // Note: You'll need to add a delete method to supabaseService
-      // await supabaseService.deletePeriodEntry(cycleId);
+      await supabaseService.deletePeriodEntry(cycleId);
       await loadPeriodData();
       
       toast({
@@ -269,6 +268,11 @@ const PeriodTracker = () => {
   const handleInputChange = (field: keyof PeriodData, value: string | number) => {
     const updatedData = { ...periodData, [field]: value };
     setPeriodData(updatedData);
+    
+    // Update cycle overview immediately when data changes
+    if (field === 'lastPeriodDate' || field === 'cycleLength' || field === 'periodLength') {
+      // The component will re-render and recalculate based on the new data
+    }
   };
 
   const calculateCurrentPhase = () => {
@@ -570,7 +574,8 @@ const PeriodTracker = () => {
                   </div>
                   <button
                     onClick={() => deletePreviousCycle(cycle.id)}
-                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                    disabled={loading}
+                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

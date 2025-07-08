@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export const supabaseService = {
@@ -156,5 +155,15 @@ export const supabaseService = {
     
     if (error) throw error;
     return data;
+  },
+
+  async deletePeriodEntry(id: string) {
+    const { error } = await supabase
+      .from('period_data')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
   }
 };
