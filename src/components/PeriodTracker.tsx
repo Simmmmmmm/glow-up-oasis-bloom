@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Calendar, Heart, AlertCircle, Info, Settings, Plus, Edit3 } from 'lucide-react';
 import { supabaseService } from '../services/supabaseService';
@@ -34,6 +33,7 @@ const PeriodTracker = () => {
   const [existingPeriods, setExistingPeriods] = useState<any[]>([]);
   const [showCustomization, setShowCustomization] = useState(false);
   const [selectedPhase, setSelectedPhase] = useState<string>('menstrual');
+  const [showCycleCustomization, setShowCycleCustomization] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -434,18 +434,69 @@ const PeriodTracker = () => {
             </div>
           </div>
 
-          {/* Customizable Log Period */}
+          {/* Enhanced Customizable Log Period */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-slate-700">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Log Your Period</h3>
-              <button
-                onClick={() => setShowCustomization(!showCustomization)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
-              >
-                <Settings className="w-4 h-4" />
-              </button>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setShowCycleCustomization(!showCycleCustomization)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
+                  title="Customize cycle settings"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setShowCustomization(!showCustomization)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
+                  title="Customize tracking fields"
+                >
+                  <Settings className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
+            {/* Cycle Customization */}
+            {showCycleCustomization && (
+              <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-xl">
+                <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-3">Cycle Settings</h4>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Cycle Length (days)
+                    </label>
+                    <input
+                      type="range"
+                      min="21"
+                      max="45"
+                      value={periodData.cycleLength}
+                      onChange={(e) => handleInputChange('cycleLength', parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{periodData.cycleLength} days</span>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Period Length (days)
+                    </label>
+                    <input
+                      type="range"
+                      min="2"
+                      max="10"
+                      value={periodData.periodLength}
+                      onChange={(e) => handleInputChange('periodLength', parseInt(e.target.value))}
+                      className="w-full"
+                    />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{periodData.periodLength} days</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Adjust these settings to match your unique cycle pattern
+                </p>
+              </div>
+            )}
+
+            {/* Tracking Fields Customization */}
             {showCustomization && (
               <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-700 rounded-xl">
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Customize Tracking</h4>
@@ -482,38 +533,6 @@ const PeriodTracker = () => {
                   disabled={loading}
                   className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
                 />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Cycle Length
-                  </label>
-                  <input
-                    type="number"
-                    min="21"
-                    max="35"
-                    value={periodData.cycleLength}
-                    onChange={(e) => handleInputChange('cycleLength', parseInt(e.target.value))}
-                    disabled={loading}
-                    className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Period Length
-                  </label>
-                  <input
-                    type="number"
-                    min="3"
-                    max="7"
-                    value={periodData.periodLength}
-                    onChange={(e) => handleInputChange('periodLength', parseInt(e.target.value))}
-                    disabled={loading}
-                    className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
-                  />
-                </div>
               </div>
 
               {trackingFields.symptoms && (
