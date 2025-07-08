@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { Calendar, Heart, AlertCircle, Info } from 'lucide-react';
+import { Calendar, Heart, AlertCircle, Info, Settings, Plus, Edit3 } from 'lucide-react';
 import { supabaseService } from '../services/supabaseService';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/use-toast';
@@ -9,6 +10,15 @@ interface PeriodData {
   cycleLength: number;
   periodLength: number;
   notes: string;
+}
+
+interface CyclePhase {
+  name: string;
+  description: string;
+  tips: string[];
+  color: string;
+  bgColor: string;
+  borderColor: string;
 }
 
 const PeriodTracker = () => {
@@ -22,8 +32,91 @@ const PeriodTracker = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [loading, setLoading] = useState(false);
   const [existingPeriods, setExistingPeriods] = useState<any[]>([]);
+  const [showCustomization, setShowCustomization] = useState(false);
+  const [selectedPhase, setSelectedPhase] = useState<string>('menstrual');
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // Customizable tracking fields
+  const [trackingFields, setTrackingFields] = useState({
+    symptoms: true,
+    flow: true,
+    mood: true,
+    exercise: false,
+    sleep: false,
+    temperature: false
+  });
+
+  const [customSymptoms, setCustomSymptoms] = useState<string[]>([
+    'Cramps', 'Headache', 'Bloating', 'Fatigue', 'Mood swings', 'Back pain'
+  ]);
+
+  const cyclePhases: Record<string, CyclePhase> = {
+    menstrual: {
+      name: 'Menstrual Phase',
+      description: 'Days 1-5: Your period is here',
+      tips: [
+        '🌸 Use a heating pad for cramps relief',
+        '💧 Stay extra hydrated to replace lost fluids',
+        '🧘‍♀️ Practice gentle yoga or light stretching',
+        '🥗 Eat iron-rich foods like spinach and lean meats',
+        '😴 Get plenty of rest - your body is working hard',
+        '🛁 Take warm baths to soothe muscle tension',
+        '🍫 Dark chocolate can help with cramps and mood'
+      ],
+      color: 'text-red-600 dark:text-red-400',
+      bgColor: 'bg-red-50 dark:bg-red-900/30',
+      borderColor: 'border-red-200 dark:border-red-800'
+    },
+    follicular: {
+      name: 'Follicular Phase',
+      description: 'Days 1-13: Energy is building',
+      tips: [
+        '💪 Great time to start new workout routines',
+        '🧠 Take advantage of increased focus and creativity',
+        '🥬 Focus on fresh, nutrient-dense foods',
+        '☀️ Get morning sunlight to boost mood',
+        '📚 Perfect time for learning new skills',
+        '🎯 Set and work toward new goals',
+        '🌱 Try meal prepping for the week ahead'
+      ],
+      color: 'text-green-600 dark:text-green-400',
+      bgColor: 'bg-green-50 dark:bg-green-900/30',
+      borderColor: 'border-green-200 dark:border-green-800'
+    },
+    ovulatory: {
+      name: 'Ovulatory Phase',
+      description: 'Days 12-16: Peak energy and fertility',
+      tips: [
+        '🔥 Energy levels are at their highest',
+        '💬 Great time for important conversations',
+        '🏃‍♀️ Try high-intensity workouts',
+        '🥑 Eat healthy fats to support hormone production',
+        '🌟 Confidence is naturally higher',
+        '💼 Schedule important meetings or presentations',
+        '🎉 Social activities feel more enjoyable'
+      ],
+      color: 'text-orange-600 dark:text-orange-400',
+      bgColor: 'bg-orange-50 dark:bg-orange-900/30',
+      borderColor: 'border-orange-200 dark:border-orange-800'
+    },
+    luteal: {
+      name: 'Luteal Phase',
+      description: 'Days 15-28: Winding down toward next cycle',
+      tips: [
+        '🧘‍♀️ Focus on gentle, restorative activities',
+        '🍠 Eat complex carbs to stabilize mood',
+        '📝 Journal to process emotions',
+        '💤 Prioritize quality sleep',
+        '🫖 Try herbal teas like chamomile',
+        '🛀 Take relaxing baths with magnesium',
+        '🤗 Practice self-compassion and patience'
+      ],
+      color: 'text-purple-600 dark:text-purple-400',
+      bgColor: 'bg-purple-50 dark:bg-purple-900/30',
+      borderColor: 'border-purple-200 dark:border-purple-800'
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -73,8 +166,6 @@ const PeriodTracker = () => {
       };
       
       await supabaseService.createPeriodEntry(newPeriod);
-      
-      // Reload data to get updated periods
       await loadPeriodData();
       
       toast({
@@ -97,9 +188,26 @@ const PeriodTracker = () => {
     const updatedData = { ...periodData, [field]: value };
     setPeriodData(updatedData);
     
-    // Auto-save when user changes data
     if (field === 'lastPeriodDate' && value) {
       savePeriodData(updatedData);
+    }
+  };
+
+  const calculateCurrentPhase = () => {
+    if (!periodData.lastPeriodDate) return 'menstrual';
+    
+    const lastPeriod = new Date(periodData.lastPeriodDate);
+    const today = new Date();
+    const daysSinceLastPeriod = Math.floor((today.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (daysSinceLastPeriod >= 0 && daysSinceLastPeriod < periodData.periodLength) {
+      return 'menstrual';
+    } else if (daysSinceLastPeriod < 13) {
+      return 'follicular';
+    } else if (daysSinceLastPeriod < 16) {
+      return 'ovulatory';
+    } else {
+      return 'luteal';
     }
   };
 
@@ -148,18 +256,15 @@ const PeriodTracker = () => {
     const nextPeriod = calculateNextPeriod();
     const fertile = calculateFertileWindow();
     
-    // Check if it's period day
     const daysDiff = Math.floor((checkDate.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
     if (daysDiff >= 0 && daysDiff < periodData.periodLength) {
       return 'period';
     }
     
-    // Check if it's next period
     if (nextPeriod && Math.abs(checkDate.getTime() - nextPeriod.getTime()) < (24 * 60 * 60 * 1000)) {
       return 'predicted-period';
     }
     
-    // Check if it's fertile window
     if (fertile.start && fertile.end && checkDate >= fertile.start && checkDate <= fertile.end) {
       return 'fertile';
     }
@@ -180,15 +285,44 @@ const PeriodTracker = () => {
     }
   };
 
+  const addCustomSymptom = () => {
+    const newSymptom = prompt('Enter a new symptom to track:');
+    if (newSymptom && !customSymptoms.includes(newSymptom)) {
+      setCustomSymptoms([...customSymptoms, newSymptom]);
+    }
+  };
+
   const nextPeriod = calculateNextPeriod();
   const fertile = calculateFertileWindow();
   const daysUntilNext = nextPeriod ? Math.ceil((nextPeriod.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+  const currentPhase = calculateCurrentPhase();
+  const currentPhaseData = cyclePhases[currentPhase];
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">Period Tracker</h2>
         <p className="text-gray-600 dark:text-gray-300">Track your menstrual cycle and stay informed about your body</p>
+      </div>
+
+      {/* Current Phase Banner */}
+      <div className={`${currentPhaseData.bgColor} rounded-2xl p-6 mb-8 shadow-sm border ${currentPhaseData.borderColor}`}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className={`text-xl font-semibold ${currentPhaseData.color}`}>
+              {currentPhaseData.name}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">{currentPhaseData.description}</p>
+          </div>
+          <Heart className={`w-8 h-8 ${currentPhaseData.color}`} />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {currentPhaseData.tips.slice(0, 3).map((tip, index) => (
+            <p key={index} className="text-sm text-gray-700 dark:text-gray-300 bg-white/50 dark:bg-gray-800/50 rounded-lg p-2">
+              {tip}
+            </p>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -258,7 +392,7 @@ const PeriodTracker = () => {
           </div>
         </div>
 
-        {/* Tracking Info */}
+        {/* Sidebar */}
         <div className="space-y-6">
           {/* Quick Stats */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-red-100 dark:border-slate-700">
@@ -300,9 +434,41 @@ const PeriodTracker = () => {
             </div>
           </div>
 
-          {/* Log Period */}
+          {/* Customizable Log Period */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-slate-700">
-            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Log Your Period</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Log Your Period</h3>
+              <button
+                onClick={() => setShowCustomization(!showCustomization)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
+              >
+                <Settings className="w-4 h-4" />
+              </button>
+            </div>
+
+            {showCustomization && (
+              <div className="mb-4 p-4 bg-gray-50 dark:bg-slate-700 rounded-xl">
+                <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Customize Tracking</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {Object.entries(trackingFields).map(([field, enabled]) => (
+                    <label key={field} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={enabled}
+                        onChange={(e) => setTrackingFields({
+                          ...trackingFields,
+                          [field]: e.target.checked
+                        })}
+                        className="rounded"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-300 capitalize">
+                        {field}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <div className="space-y-4">
               <div>
@@ -318,45 +484,84 @@ const PeriodTracker = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Cycle Length (days)
-                </label>
-                <input
-                  type="number"
-                  min="21"
-                  max="35"
-                  value={periodData.cycleLength}
-                  onChange={(e) => handleInputChange('cycleLength', parseInt(e.target.value))}
-                  disabled={loading}
-                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Cycle Length
+                  </label>
+                  <input
+                    type="number"
+                    min="21"
+                    max="35"
+                    value={periodData.cycleLength}
+                    onChange={(e) => handleInputChange('cycleLength', parseInt(e.target.value))}
+                    disabled={loading}
+                    className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Period Length
+                  </label>
+                  <input
+                    type="number"
+                    min="3"
+                    max="7"
+                    value={periodData.periodLength}
+                    onChange={(e) => handleInputChange('periodLength', parseInt(e.target.value))}
+                    disabled={loading}
+                    className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
+                  />
+                </div>
               </div>
+
+              {trackingFields.symptoms && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Symptoms
+                    </label>
+                    <button
+                      onClick={addCustomSymptom}
+                      className="text-pink-600 dark:text-pink-400 hover:text-pink-700 dark:hover:text-pink-300"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {customSymptoms.map((symptom) => (
+                      <button
+                        key={symptom}
+                        onClick={() => {
+                          const current = periodData.notes.split(', ').filter(s => s.trim());
+                          const updated = current.includes(symptom)
+                            ? current.filter(s => s !== symptom)
+                            : [...current, symptom];
+                          handleInputChange('notes', updated.join(', '));
+                        }}
+                        className={`px-3 py-1 rounded-full text-xs border ${
+                          periodData.notes.includes(symptom)
+                            ? 'bg-pink-100 dark:bg-pink-900/30 border-pink-300 dark:border-pink-700 text-pink-700 dark:text-pink-300'
+                            : 'border-gray-200 dark:border-slate-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-700'
+                        }`}
+                      >
+                        {symptom}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Period Length (days)
-                </label>
-                <input
-                  type="number"
-                  min="3"
-                  max="7"
-                  value={periodData.periodLength}
-                  onChange={(e) => handleInputChange('periodLength', parseInt(e.target.value))}
-                  disabled={loading}
-                  className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 disabled:opacity-50"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Notes & Symptoms
+                  Additional Notes
                 </label>
                 <textarea
                   value={periodData.notes}
                   onChange={(e) => handleInputChange('notes', e.target.value)}
                   onBlur={() => savePeriodData(periodData)}
-                  placeholder="Any symptoms, mood changes, etc..."
+                  placeholder="Any additional symptoms, notes, or observations..."
                   disabled={loading}
                   className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent resize-none h-20 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50"
                 ></textarea>
@@ -370,18 +575,41 @@ const PeriodTracker = () => {
             </div>
           </div>
 
-          {/* Health Tips */}
-          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-purple-100 dark:border-slate-700">
+          {/* Phase-Specific Tips */}
+          <div className={`${currentPhaseData.bgColor} rounded-2xl p-6 shadow-sm border ${currentPhaseData.borderColor}`}>
             <div className="flex items-center space-x-2 mb-4">
-              <Info className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">Cycle Tips</h3>
+              <Info className={`w-5 h-5 ${currentPhaseData.color}`} />
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                {currentPhaseData.name} Tips
+              </h3>
             </div>
             
-            <div className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
-              <p>🌸 Track your symptoms to understand your unique cycle patterns</p>
-              <p>💧 Stay hydrated, especially during your period</p>
-              <p>🧘‍♀️ Practice gentle yoga or stretching for cramps</p>
-              <p>🥗 Eat iron-rich foods during menstruation</p>
+            <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              {currentPhaseData.tips.map((tip, index) => (
+                <p key={index} className="bg-white/50 dark:bg-gray-800/50 rounded-lg p-2">
+                  {tip}
+                </p>
+              ))}
+            </div>
+
+            {/* Phase Selection */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">View tips for other phases:</p>
+              <div className="flex flex-wrap gap-2">
+                {Object.entries(cyclePhases).map(([key, phase]) => (
+                  <button
+                    key={key}
+                    onClick={() => setSelectedPhase(key)}
+                    className={`px-2 py-1 rounded text-xs ${
+                      key === currentPhase
+                        ? phase.color + ' font-medium'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    {phase.name.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
