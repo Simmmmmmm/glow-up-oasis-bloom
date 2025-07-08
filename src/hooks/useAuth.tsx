@@ -2,7 +2,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { AuthContextType } from './auth/types';
 import { loadUserProfile } from './auth/authUtils';
 import { handleSignUp, handleSignIn, handleSignOut } from './auth/authHandlers';
@@ -14,7 +14,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const { toast } = useToast();
 
   const refreshProfile = async () => {
     if (user) {
@@ -63,7 +62,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, [toast]);
+  }, []);
 
   const signUp = (email: string, password: string, fullName?: string, dateOfBirth?: string) => {
     return handleSignUp(email, password, fullName, dateOfBirth);
