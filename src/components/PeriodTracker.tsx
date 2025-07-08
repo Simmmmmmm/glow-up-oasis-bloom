@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Heart, AlertCircle, Info, Settings, Plus, Edit3 } from 'lucide-react';
+import { Calendar, Heart, AlertCircle, Info, Settings, Plus, Edit3, Save, Trash2 } from 'lucide-react';
 import { supabaseService } from '../services/supabaseService';
 import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../hooks/use-toast';
@@ -20,6 +20,14 @@ interface CyclePhase {
   borderColor: string;
 }
 
+interface PreviousCycle {
+  id: string;
+  start_date: string;
+  end_date: string | null;
+  symptoms: string[];
+  flow: string;
+}
+
 const PeriodTracker = () => {
   const [periodData, setPeriodData] = useState<PeriodData>({
     lastPeriodDate: '',
@@ -34,10 +42,16 @@ const PeriodTracker = () => {
   const [showCustomization, setShowCustomization] = useState(false);
   const [selectedPhase, setSelectedPhase] = useState<string>('menstrual');
   const [showCycleCustomization, setShowCycleCustomization] = useState(false);
+  const [showPreviousCycles, setShowPreviousCycles] = useState(false);
+  const [newCycleEntry, setNewCycleEntry] = useState({
+    start_date: '',
+    end_date: '',
+    symptoms: [] as string[],
+    flow: 'normal'
+  });
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Customizable tracking fields
   const [trackingFields, setTrackingFields] = useState({
     symptoms: true,
     flow: true,
@@ -184,13 +198,77 @@ const PeriodTracker = () => {
     }
   };
 
+  const handleSavePeriodData = async () => {
+    await savePeriodData(periodData);
+  };
+
+  const addPreviousCycle = async () => {
+    if (!user || !newCycleEntry.start_date) return;
+
+    setLoading(true);
+    try {
+      const cycleData = {
+        start_date: newCycleEntry.start_date,
+        end_date: newCycleEntry.end_date || null,
+        symptoms: newCycleEntry.symptoms,
+        flow: newCycleEntry.flow
+      };
+      
+      await supabaseService.createPeriodEntry(cycleData);
+      await loadPeriodData();
+      
+      // Reset form
+      setNewCycleEntry({
+        start_date: '',
+        end_date: '',
+        symptoms: [],
+        flow: 'normal'
+      });
+      
+      toast({
+        title: "Success",
+        description: "Previous cycle added successfully!",
+      });
+    } catch (error) {
+      console.error('Error adding previous cycle:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to add previous cycle. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deletePreviousCycle = async (cycleId: string) => {
+    if (!user) return;
+
+    setLoading(true);
+    try {
+      // Note: You'll need to add a delete method to supabaseService
+      // await supabaseService.deletePeriodEntry(cycleId);
+      await loadPeriodData();
+      
+      toast({
+        title: "Success",
+        description: "Cycle deleted successfully!",
+      });
+    } catch (error) {
+      console.error('Error deleting cycle:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to delete cycle. Please try again.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (field: keyof PeriodData, value: string | number) => {
     const updatedData = { ...periodData, [field]: value };
     setPeriodData(updatedData);
-    
-    if (field === 'lastPeriodDate' && value) {
-      savePeriodData(updatedData);
-    }
   };
 
   const calculateCurrentPhase = () => {
@@ -327,67 +405,182 @@ const PeriodTracker = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Calendar View */}
-        <div className="lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-slate-700">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Cycle Calendar</h3>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
-              >
-                ←
-              </button>
-              <span className="font-medium text-gray-800 dark:text-gray-100">
-                {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-              </span>
-              <button
-                onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
-              >
-                →
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-7 gap-2 mb-4">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
-                {day}
-              </div>
-            ))}
-            
-            {getDaysInMonth(currentMonth).map((day, index) => {
-              if (day === null) {
-                return <div key={index} className="aspect-square"></div>;
-              }
-              
-              const dayType = getDayType(day);
-              const dayStyle = getDayStyle(dayType);
-              
-              return (
-                <div
-                  key={index}
-                  className={`aspect-square rounded-lg border-2 flex items-center justify-center cursor-pointer transition-colors ${dayStyle}`}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-pink-100 dark:border-slate-700">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Cycle Calendar</h3>
+              <div className="flex items-center space-x-4">
+                <button
+                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1))}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
                 >
-                  <span className="text-sm font-medium">{day}</span>
+                  ←
+                </button>
+                <span className="font-medium text-gray-800 dark:text-gray-100">
+                  {currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </span>
+                <button
+                  onClick={() => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1))}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-full text-gray-600 dark:text-gray-300"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-7 gap-2 mb-4">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
+                  {day}
                 </div>
-              );
-            })}
+              ))}
+              
+              {getDaysInMonth(currentMonth).map((day, index) => {
+                if (day === null) {
+                  return <div key={index} className="aspect-square"></div>;
+                }
+                
+                const dayType = getDayType(day);
+                const dayStyle = getDayStyle(dayType);
+                
+                return (
+                  <div
+                    key={index}
+                    className={`aspect-square rounded-lg border-2 flex items-center justify-center cursor-pointer transition-colors ${dayStyle}`}
+                  >
+                    <span className="text-sm font-medium">{day}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-100 dark:border-slate-600">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded bg-red-200 dark:bg-red-900/50 border-2 border-red-300 dark:border-red-700"></div>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Period</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800 border-dashed"></div>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Predicted Period</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded bg-green-200 dark:bg-green-900/50 border-2 border-green-300 dark:border-green-700"></div>
+                <span className="text-sm text-gray-600 dark:text-gray-300">Fertile Window</span>
+              </div>
+            </div>
           </div>
 
-          {/* Legend */}
-          <div className="flex flex-wrap gap-4 pt-4 border-t border-gray-100 dark:border-slate-600">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-red-200 dark:bg-red-900/50 border-2 border-red-300 dark:border-red-700"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-300">Period</span>
+          {/* Previous Cycles Section */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-purple-100 dark:border-slate-700">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Previous Cycles</h3>
+              <button
+                onClick={() => setShowPreviousCycles(!showPreviousCycles)}
+                className="flex items-center space-x-2 px-4 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Previous Cycle</span>
+              </button>
             </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900/30 border-2 border-red-200 dark:border-red-800 border-dashed"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-300">Predicted Period</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded bg-green-200 dark:bg-green-900/50 border-2 border-green-300 dark:border-green-700"></div>
-              <span className="text-sm text-gray-600 dark:text-gray-300">Fertile Window</span>
+
+            {/* Add Previous Cycle Form */}
+            {showPreviousCycles && (
+              <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl">
+                <h4 className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-3">Add Previous Cycle</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      value={newCycleEntry.start_date}
+                      onChange={(e) => setNewCycleEntry({...newCycleEntry, start_date: e.target.value})}
+                      className="w-full p-2 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      End Date (Optional)
+                    </label>
+                    <input
+                      type="date"
+                      value={newCycleEntry.end_date}
+                      onChange={(e) => setNewCycleEntry({...newCycleEntry, end_date: e.target.value})}
+                      className="w-full p-2 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Flow
+                  </label>
+                  <select
+                    value={newCycleEntry.flow}
+                    onChange={(e) => setNewCycleEntry({...newCycleEntry, flow: e.target.value})}
+                    className="w-full p-2 border border-gray-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="light">Light</option>
+                    <option value="normal">Normal</option>
+                    <option value="heavy">Heavy</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => setShowPreviousCycles(false)}
+                    className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={addPreviousCycle}
+                    disabled={!newCycleEntry.start_date || loading}
+                    className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                  >
+                    Add Cycle
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Previous Cycles List */}
+            <div className="space-y-3">
+              {existingPeriods.slice(-5).reverse().map((cycle, index) => (
+                <div key={cycle.id || index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-4">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                        {new Date(cycle.start_date).toLocaleDateString()}
+                      </span>
+                      {cycle.end_date && (
+                        <span className="text-sm text-gray-600 dark:text-gray-300">
+                          - {new Date(cycle.end_date).toLocaleDateString()}
+                        </span>
+                      )}
+                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs">
+                        {cycle.flow || 'normal'}
+                      </span>
+                    </div>
+                    {cycle.symptoms && cycle.symptoms.length > 0 && (
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        {cycle.symptoms.join(', ')}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => deletePreviousCycle(cycle.id)}
+                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              {existingPeriods.length === 0 && (
+                <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                  No previous cycles recorded yet
+                </p>
+              )}
             </div>
           </div>
         </div>
@@ -579,18 +772,21 @@ const PeriodTracker = () => {
                 <textarea
                   value={periodData.notes}
                   onChange={(e) => handleInputChange('notes', e.target.value)}
-                  onBlur={() => savePeriodData(periodData)}
                   placeholder="Any additional symptoms, notes, or observations..."
                   disabled={loading}
                   className="w-full p-3 border border-gray-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-pink-300 dark:focus:ring-pink-500 focus:border-transparent resize-none h-20 bg-white dark:bg-slate-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50"
                 ></textarea>
               </div>
 
-              {loading && (
-                <div className="text-center py-2">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Saving...</span>
-                </div>
-              )}
+              {/* Save Button */}
+              <button
+                onClick={handleSavePeriodData}
+                disabled={loading || !periodData.lastPeriodDate}
+                className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                <span>{loading ? 'Saving...' : 'Save Period Data'}</span>
+              </button>
             </div>
           </div>
 

@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Sparkles, Heart, Moon, Sun, Dumbbell, Brain } from 'lucide-react';
 
 const WellnessTips = () => {
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedCategory, setSelectedCategory] = useState('Skincare');
 
-  const categories = ['All', 'Skincare', 'Mental Health', 'Sleep', 'Nutrition', 'Fitness'];
+  const categories = ['Skincare', 'Mental Health', 'Sleep', 'Nutrition', 'Fitness'];
 
   const tips = [
     // Skincare Tips (10)
@@ -519,9 +518,7 @@ const WellnessTips = () => {
     }
   ];
 
-  const filteredTips = selectedCategory === 'All' 
-    ? tips 
-    : tips.filter(tip => tip.category === selectedCategory);
+  const filteredTips = tips.filter(tip => tip.category === selectedCategory);
 
   const wellnessVideos = [
     {
@@ -588,7 +585,7 @@ const WellnessTips = () => {
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  {category} {category !== 'All' && `(${tips.filter(tip => tip.category === category).length})`}
+                  {category} ({tips.filter(tip => tip.category === category).length})
                 </button>
               ))}
             </div>
