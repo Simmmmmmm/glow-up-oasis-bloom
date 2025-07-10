@@ -39,15 +39,22 @@ const PeriodCalendar = ({ periodData, currentMonth, setCurrentMonth }: PeriodCal
     const nextPeriod = calculateNextPeriod(periodData);
     const fertile = calculateFertileWindow(periodData);
     
-    const daysDiff = Math.floor((checkDate.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 1000));
+    // Fix: Use proper 24-hour calculation
+    const daysDiff = Math.floor((checkDate.getTime() - lastPeriod.getTime()) / (1000 * 60 * 60 * 24));
     if (daysDiff >= 0 && daysDiff < periodData.periodLength) {
       return 'period';
     }
     
-    if (nextPeriod && Math.abs(checkDate.getTime() - nextPeriod.getTime()) < (24 * 60 * 60 * 1000)) {
-      return 'predicted-period';
+    // Check if this day is predicted period (within 7 days range of next period)
+    if (nextPeriod) {
+      const nextPeriodStart = new Date(nextPeriod);
+      const daysDiffFromNextPeriod = Math.floor((checkDate.getTime() - nextPeriodStart.getTime()) / (1000 * 60 * 60 * 24));
+      if (daysDiffFromNextPeriod >= 0 && daysDiffFromNextPeriod < periodData.periodLength) {
+        return 'predicted-period';
+      }
     }
     
+    // Check fertile window
     if (fertile.start && fertile.end && checkDate >= fertile.start && checkDate <= fertile.end) {
       return 'fertile';
     }
