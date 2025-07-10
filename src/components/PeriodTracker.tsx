@@ -32,7 +32,7 @@ const PeriodTracker = () => {
   const [periodData, setPeriodData] = useState<PeriodData>({
     lastPeriodDate: '',
     cycleLength: 28,
-    periodLength: 5,
+    periodLength: 7,
     notes: ''
   });
 
@@ -151,7 +151,7 @@ const PeriodTracker = () => {
         setPeriodData({
           lastPeriodDate: lastPeriod.start_date,
           cycleLength: 28,
-          periodLength: 5,
+          periodLength: 7,
           notes: lastPeriod.symptoms?.join(', ') || ''
         });
       }
@@ -371,7 +371,21 @@ const PeriodTracker = () => {
     }
   };
 
-  // Calculate all values based on current periodData state
+  const formatCycleInfo = (cycle: any) => {
+    const startDate = new Date(cycle.start_date);
+    const endDate = cycle.end_date ? new Date(cycle.end_date) : null;
+    const cycleDuration = endDate ? Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1 : 'Ongoing';
+    
+    return {
+      month: startDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }),
+      startDate: startDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+      endDate: endDate ? endDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) : 'Ongoing',
+      duration: cycleDuration,
+      flow: cycle.flow || 'normal',
+      symptoms: cycle.symptoms || []
+    };
+  };
+
   const nextPeriod = calculateNextPeriod();
   const fertile = calculateFertileWindow();
   const daysUntilNext = nextPeriod ? Math.ceil((nextPeriod.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
@@ -473,7 +487,7 @@ const PeriodTracker = () => {
             </div>
           </div>
 
-          {/* Previous Cycles Section */}
+          {/* Enhanced Previous Cycles Section */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-purple-100 dark:border-slate-700">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Previous Cycles</h3>
@@ -546,41 +560,68 @@ const PeriodTracker = () => {
               </div>
             )}
 
-            {/* Previous Cycles List */}
-            <div className="space-y-3">
-              {existingPeriods.slice(-5).reverse().map((cycle, index) => (
-                <div key={cycle.id || index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700 rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-4">
-                      <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                        {new Date(cycle.start_date).toLocaleDateString()}
-                      </span>
-                      {cycle.end_date && (
-                        <span className="text-sm text-gray-600 dark:text-gray-300">
-                          - {new Date(cycle.end_date).toLocaleDateString()}
+            {/* Enhanced Previous Cycles List */}
+            <div className="space-y-4">
+              {existingPeriods.slice(-5).reverse().map((cycle, index) => {
+                const cycleInfo = formatCycleInfo(cycle);
+                return (
+                  <div key={cycle.id || index} className="p-4 bg-gray-50 dark:bg-slate-700 rounded-lg border border-gray-200 dark:border-slate-600">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-4">
+                        <h4 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                          {cycleInfo.month}
+                        </h4>
+                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          cycleInfo.flow === 'heavy' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                          cycleInfo.flow === 'light' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
+                          'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                        }`}>
+                          {cycleInfo.flow} flow
                         </span>
-                      )}
-                      <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs">
-                        {cycle.flow || 'normal'}
-                      </span>
+                      </div>
+                      <button
+                        onClick={() => deletePreviousCycle(cycle.id)}
+                        disabled={loading}
+                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                    {cycle.symptoms && cycle.symptoms.length > 0 && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        {cycle.symptoms.join(', ')}
-                      </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                      <div>
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Start Date</span>
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{cycleInfo.startDate}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">End Date</span>
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">{cycleInfo.endDate}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Duration</span>
+                        <p className="text-sm font-medium text-gray-800 dark:text-gray-100">
+                          {typeof cycleInfo.duration === 'number' ? `${cycleInfo.duration} days` : cycleInfo.duration}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {cycleInfo.symptoms.length > 0 && (
+                      <div>
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Symptoms</span>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {cycleInfo.symptoms.map((symptom, idx) => (
+                            <span key={idx} className="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-xs">
+                              {symptom}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => deletePreviousCycle(cycle.id)}
-                    disabled={loading}
-                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
               {existingPeriods.length === 0 && (
-                <p className="text-center text-gray-500 dark:text-gray-400 py-4">
+                <p className="text-center text-gray-500 dark:text-gray-400 py-8">
                   No previous cycles recorded yet
                 </p>
               )}
