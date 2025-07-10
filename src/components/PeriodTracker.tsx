@@ -268,11 +268,8 @@ const PeriodTracker = () => {
   const handleInputChange = (field: keyof PeriodData, value: string | number) => {
     const updatedData = { ...periodData, [field]: value };
     setPeriodData(updatedData);
-    
-    // Update cycle overview immediately when data changes
-    if (field === 'lastPeriodDate' || field === 'cycleLength' || field === 'periodLength') {
-      // The component will re-render and recalculate based on the new data
-    }
+    // The component will automatically re-render and recalculate all values
+    // including cycle overview and calendar based on the new period data
   };
 
   const calculateCurrentPhase = () => {
@@ -374,6 +371,7 @@ const PeriodTracker = () => {
     }
   };
 
+  // Calculate all values based on current periodData state
   const nextPeriod = calculateNextPeriod();
   const fertile = calculateFertileWindow();
   const daysUntilNext = nextPeriod ? Math.ceil((nextPeriod.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
@@ -592,7 +590,7 @@ const PeriodTracker = () => {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Quick Stats */}
+          {/* Quick Stats - Updated to show current form values */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-red-100 dark:border-slate-700">
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Cycle Overview</h3>
             
